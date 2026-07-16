@@ -62,7 +62,7 @@ export default function Home() {
             </div>
 
             <a
-              href="#start"
+              href="/tutorial"
               className="flex h-[58px] items-center justify-center border-2 border-black px-6 font-mono text-[16px] font-bold tracking-[0.16em] text-black transition-colors duration-200 hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
             >
               <span>[ BEGIN YOUR STORY ]</span>
