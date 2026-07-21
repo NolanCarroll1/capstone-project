@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Vercel Root Directory
+
+If you deploy this app from a monorepo or parent repository, make sure the Vercel project Root Directory is set to `impactful`.
+
 ## Getting Started
 
 First, run the development server:
