@@ -46,7 +46,10 @@ export default function TutorialPage() {
 
 	const goNext = () => setStep((current) => Math.min(current + 1, 3) as TutorialStep);
 	const goBack = () => setStep((current) => Math.max(current - 1, 1) as TutorialStep);
-
+    const startPlaying = () => {
+     // Logic to navigate to the game page or start the game
+        window.location.href = "/game"; // Example navigation
+    };
 	return (
 		<main className="min-h-screen bg-black px-0 py-0 text-white sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
 			<section className="flex min-h-screen w-full flex-col overflow-hidden bg-black sm:min-h-[852px] sm:max-w-[393px]">
@@ -231,6 +234,7 @@ export default function TutorialPage() {
 						) : (
 							<button
 								type="button"
+                                onClick={startPlaying}
 								className="flex h-[52px] flex-1 items-center justify-center bg-black px-6 whitespace-nowrap text-center font-mono text-[16px] font-bold tracking-[0.12em] text-white transition-colors duration-200 hover:bg-[#111827] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
 							>
 								<span>[ START PLAYING ]</span>
