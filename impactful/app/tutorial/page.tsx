@@ -52,8 +52,8 @@ export default function TutorialPage() {
     };
 	return (
 		<main className="min-h-screen bg-black px-0 py-0 text-white sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-			<section className="flex min-h-screen w-full flex-col overflow-hidden bg-black sm:min-h-[852px] sm:max-w-[393px]">
-				<header className="px-8 pb-12 pt-12">
+			<section className="flex min-h-screen w-full flex-col overflow-hidden bg-black sm:min-h-[852px] sm:max-w-[393px] lg:flex-row lg:max-w-[1180px] lg:min-h-[768px] lg:rounded-none lg:shadow-none">
+				<header className="px-8 pb-12 pt-12 lg:flex lg:w-[404px] lg:shrink-0 lg:flex-col lg:justify-center lg:px-10 lg:py-12">
 					<p className="font-sans text-[12px] font-semibold tracking-[0.18em] text-[#8e98ac]">
 						TUTORIAL
 					</p>
@@ -105,7 +105,7 @@ export default function TutorialPage() {
 					<p className="mt-3 font-sans text-[14px] text-[#8e98ac]">{step} of 3</p>
 				</header>
 
-				<section className="mt-auto bg-white px-8 pb-10 pt-10 text-black">
+				<section className="mt-auto bg-white px-8 pb-10 pt-10 text-black lg:mt-0 lg:flex-1 lg:px-16 lg:py-16">
 					{step === 1 ? (
 						<div className="space-y-5">
 							<p className="font-sans text-[12px] font-semibold tracking-[0.18em] text-[#a0a8b7]">
@@ -212,7 +212,7 @@ export default function TutorialPage() {
 						</div>
 					)}
 
-					<div className="mt-10 flex gap-4">
+					<div className="mt-10 flex gap-4 lg:mt-12 lg:max-w-[420px]">
 						{step > 1 ? (
 							<button
 								type="button"

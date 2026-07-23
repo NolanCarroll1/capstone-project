@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
@@ -308,6 +309,7 @@ function StatRow({ label, value }: { label: string; value: number }) {
 
 export default function GamePage() {
 	const [state, dispatch] = useReducer(gameReducer, initialState);
+	const router = useRouter();
 	const [expandedChoices, setExpandedChoices] = useState<Record<Phase, ChoiceKey>>({
 		1: "A",
 		2: "A",
@@ -321,14 +323,25 @@ export default function GamePage() {
 	const expandedChoice = expandedChoices[state.phase] ?? "A";
 
 	const choosePath = (choice: Choice) => {
+		const nextTrust = Math.max(0, state.trust + (choice.delta.trust ?? 0));
+		const nextRevenue = Math.max(0, state.revenue + (choice.delta.revenue ?? 0));
+		const nextPopulation = Math.max(0, state.population + (choice.delta.population ?? 0));
+		const nextChoiceCount = state.choiceCount + 1;
+
 		dispatch({ type: "apply-choice", delta: choice.delta });
 		window.scrollTo({ top: 0, behavior: "smooth" });
+
+		if (state.phase === 5) {
+			router.push(
+				`/stats?trust=${nextTrust}&revenue=${nextRevenue}&population=${nextPopulation}&choiceCount=${nextChoiceCount}`,
+			);
+		}
 	};
 
 	return (
 		<main className="min-h-screen bg-[#f3f1ec] px-0 py-0 text-black sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-			<section className="flex min-h-screen w-full flex-col bg-white sm:min-h-[852px] sm:max-w-[393px]">
-				<header className="px-4 pb-5 pt-6">
+			<section className="flex min-h-screen w-full flex-col bg-white sm:min-h-[852px] sm:max-w-[393px] lg:flex-row lg:max-w-[1180px] lg:min-h-[768px] lg:overflow-hidden lg:rounded-none lg:shadow-none">
+				<header className="px-4 pb-5 pt-6 lg:w-[404px] lg:shrink-0 lg:px-10 lg:pb-10 lg:pt-10">
 					<div className="flex items-center justify-between gap-4">
 						<p className="font-sans text-[12px] font-semibold tracking-[0.18em] text-[#8e98ac]">
 							{currentRound.phaseLabel}
@@ -374,7 +387,7 @@ export default function GamePage() {
 					</div>
 				</header>
 
-				<section className="flex-1 px-4 pb-6">
+				<section className="flex-1 px-4 pb-6 lg:px-10 lg:py-10">
 					<p className="mb-3 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9aa3b2]">
 						Choose one path
 					</p>
