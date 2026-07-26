@@ -47,7 +47,7 @@ export default function WelcomePage() {
 						Impact
 					</p>
 					<Link
-						href="/tutorial"
+						href="/login"
 						className="-mt-1 inline-block whitespace-nowrap font-sans text-[36px] font-bold leading-[63px] tracking-[-0.02em] text-[#ff8d00]"
 					>
 						Starts Here →

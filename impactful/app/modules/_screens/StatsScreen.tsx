@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type StatsPageProps = {
 	searchParams?: {
 		trust?: string;
@@ -5,6 +7,7 @@ type StatsPageProps = {
 		population?: string;
 		choiceCount?: string;
 	};
+	moduleSlug?: string;
 };
 
 function parseNumber(value: string | undefined, fallback: number) {
@@ -66,7 +69,7 @@ function StatCard({
 	);
 }
 
-export default function StatsPage({ searchParams }: StatsPageProps) {
+export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: StatsPageProps) {
 	const trust = parseNumber(searchParams?.trust, 38);
 	const revenue = parseNumber(searchParams?.revenue, 1420);
 	const population = parseNumber(searchParams?.population, 515);
@@ -134,12 +137,12 @@ export default function StatsPage({ searchParams }: StatsPageProps) {
 					</div>
 
 					<div className="mt-8 space-y-3">
-						<a
-							href="/tutorial"
+						<Link
+							href={`/modules/${moduleSlug}/tutorial`}
 							className="flex h-[44px] items-center justify-center border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
 						>
 							[ NEW STORY ]
-						</a>
+						</Link>
 
 						<button
 							type="button"
@@ -155,4 +158,8 @@ export default function StatsPage({ searchParams }: StatsPageProps) {
 			</section>
 		</main>
 	);
+}
+
+export default function StatsPage({ searchParams }: StatsPageProps) {
+	return <StatsScreen searchParams={searchParams} />;
 }

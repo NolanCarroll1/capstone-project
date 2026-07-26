@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const stepLabels = ["HOW IT WORKS", "MAKING CHOICES", "SEEING IMPACT"];
@@ -41,15 +42,20 @@ const impactStats = [
 
 type TutorialStep = 1 | 2 | 3;
 
-export default function TutorialPage() {
+type TutorialScreenProps = {
+	moduleSlug?: string;
+};
+
+export function TutorialScreen({ moduleSlug = "deceptive-design" }: TutorialScreenProps) {
 	const [step, setStep] = useState<TutorialStep>(1);
+	const router = useRouter();
 
 	const goNext = () => setStep((current) => Math.min(current + 1, 3) as TutorialStep);
 	const goBack = () => setStep((current) => Math.max(current - 1, 1) as TutorialStep);
-    const startPlaying = () => {
-     // Logic to navigate to the game page or start the game
-        window.location.href = "/game"; // Example navigation
-    };
+	const startPlaying = () => {
+		router.push(`/modules/${moduleSlug}/game`);
+	};
+
 	return (
 		<main className="min-h-screen bg-black px-0 py-0 text-white sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
 			<section className="flex min-h-screen w-full flex-col overflow-hidden bg-black sm:min-h-[852px] sm:max-w-[393px] lg:flex-row lg:max-w-[1180px] lg:min-h-[768px] lg:rounded-none lg:shadow-none">
@@ -183,10 +189,7 @@ export default function TutorialPage() {
 
 							<div className="mt-10 space-y-4">
 								{impactStats.map((stat) => (
-									<article
-										key={stat.label}
-										className="rounded-[16px] border border-[#e6ebf2] px-4 py-4"
-									>
+									<article key={stat.label} className="rounded-[16px] border border-[#e6ebf2] px-4 py-4">
 										<div className="flex items-center justify-between">
 											<p className="font-sans text-[12px] font-semibold tracking-[0.18em] text-[#7f8798]">
 												{stat.label}
@@ -234,10 +237,10 @@ export default function TutorialPage() {
 						) : (
 							<button
 								type="button"
-                                onClick={startPlaying}
+								onClick={startPlaying}
 								className="flex h-[52px] flex-1 items-center justify-center bg-black px-6 whitespace-nowrap text-center font-mono text-[16px] font-bold tracking-[0.12em] text-white transition-colors duration-200 hover:bg-[#111827] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
 							>
-								<span>[ START PLAYING ]</span>
+								<span>[ CONTINUE TO GAME ]</span>
 								<span aria-hidden="true" className="ml-2 text-[14px] leading-none">
 									→
 								</span>

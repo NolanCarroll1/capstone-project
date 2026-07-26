@@ -307,7 +307,11 @@ function StatRow({ label, value }: { label: string; value: number }) {
 	);
 }
 
-export default function GamePage() {
+type GameScreenProps = {
+	moduleSlug?: string;
+};
+
+export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps) {
 	const [state, dispatch] = useReducer(gameReducer, initialState);
 	const router = useRouter();
 	const [expandedChoices, setExpandedChoices] = useState<Record<Phase, ChoiceKey>>({
@@ -333,7 +337,7 @@ export default function GamePage() {
 
 		if (state.phase === 5) {
 			router.push(
-				`/stats?trust=${nextTrust}&revenue=${nextRevenue}&population=${nextPopulation}&choiceCount=${nextChoiceCount}`,
+				`/modules/${moduleSlug}/stats?trust=${nextTrust}&revenue=${nextRevenue}&population=${nextPopulation}&choiceCount=${nextChoiceCount}`,
 			);
 		}
 	};
