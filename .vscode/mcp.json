@@ -1,7 +1,11 @@
 {
 	"servers": {
-		"my-mcp-server-727dfe3d": {
-			"url": "http://127.0.0.1:3845/mcp",
+		//"my-mcp-server-727dfe3d": {
+			//"url": "http://127.0.0.1:3845/mcp",
+			//"type": "http"
+		//},
+		"figma": {
+			"url": "https://mcp.figma.com/mcp",
 			"type": "http"
 		}
 	},
