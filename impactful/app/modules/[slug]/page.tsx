@@ -1,85 +1,94 @@
+import Image from "next/image";
 import Link from "next/link";
 
-const moduleMap = {
+type ModuleInfo = {
+	title: string;
+	subtitle: string;
+	description: string;
+	phase: string;
+	meta: string[];
+};
+
+const moduleMap: Record<string, ModuleInfo> = {
 	"deceptive-design": {
-		title: "Deceptive Design",
-		subtitle: "Module start page",
+		title: "Digital Citizen",
+		subtitle: "Deceptive Design module",
 		description:
-			"Read the setup, then continue into the tutorial to learn how the town simulation works.",
+			"You're in charge of a growing digital town. Every design choice you make shapes how your citizens experience their online world. The path you choose decides what kind of community this becomes — and every decision leads somewhere different.",
+		phase: "PHASE 1 OF 5",
+		meta: ["5 phases", "10+ scenarios", "your path"],
 	},
-} as const;
+};
+
+const illustrationSrc = "https://www.figma.com/api/mcp/asset/28e39449-71b0-4265-879e-596fca137b05";
 
 export default async function ModuleStartPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
-	const moduleInfo = moduleMap[slug as keyof typeof moduleMap];
-
-	if (!moduleInfo) {
-		return (
-			<main className="min-h-screen bg-[#f3f1ec] px-4 py-8 text-black sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-				<section className="w-full max-w-180 rounded-3xl bg-white px-6 py-8 shadow-[0_20px_80px_rgba(0,0,0,0.12)]">
-					<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#98a0b3]">
-						Module not found
-					</p>
-					<h1 className="mt-3 font-sans text-[32px] font-bold tracking-tighter text-black">
-						That module is not available yet.
-					</h1>
-						<Link href="/dashboard" className="mt-8 inline-flex h-12 items-center justify-center bg-black px-6 font-mono text-[14px] font-bold tracking-[0.18em] text-white">
-							[ BACK ]
-					</Link>
-				</section>
-			</main>
-		);
-	}
+	const moduleInfo = moduleMap[slug] ?? moduleMap["deceptive-design"];
+	const tutorialHref = `/modules/${slug}/tutorial`;
 
 	return (
-		<main className="min-h-screen bg-[#f3f1ec] px-4 py-8 text-black sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-			<section className="grid w-full max-w-260 overflow-hidden bg-white shadow-[0_20px_80px_rgba(0,0,0,0.12)] lg:grid-cols-[1.05fr_0.95fr] lg:rounded-[28px]">
-				<div className="bg-black px-6 py-8 text-white lg:px-10 lg:py-12">
-					<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#8f98aa]">
-						{moduleInfo.subtitle}
-					</p>
-					<h1 className="mt-4 font-sans text-[44px] font-bold leading-[0.95] tracking-[-0.06em] text-white">
-						{moduleInfo.title}
-					</h1>
-					<p className="mt-5 max-w-85 font-sans text-[17px] leading-[1.65] text-[#c7cfdd]">
-						{moduleInfo.description}
-					</p>
+		<main className="min-h-dvh w-full overflow-x-hidden bg-white text-black">
+			<section className="flex min-h-dvh w-full flex-col bg-white">
+				<div className="flex flex-[0.9] min-h-0 flex-col items-center justify-center bg-black px-[clamp(24px,7vw,32px)] py-[clamp(32px,9vw,48px)] text-white">
+					<Image
+						src={illustrationSrc}
+						alt=""
+						width={220}
+						height={220}
+						unoptimized
+						className="h-[clamp(180px,52vw,220px)] w-[clamp(180px,52vw,220px)] shrink-0 object-cover"
+					/>
+					<div className="mt-[clamp(24px,6vw,32px)] text-center">
+						<p className="font-sans text-[clamp(22px,6vw,24px)] font-semibold leading-none tracking-wider text-[#99a1af]">
+							{moduleInfo.title.toUpperCase()}
+						</p>
+						<p className="mt-2 font-sans text-[clamp(18px,5vw,20px)] leading-[1.2] text-[#6a7282]">
+							{moduleInfo.subtitle}
+						</p>
+					</div>
 				</div>
 
-				<div className="px-6 py-8 lg:px-10 lg:py-12">
-					<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#98a0b3]">
-						BEFORE YOU START
-					</p>
-					<h2 className="mt-3 font-sans text-[30px] font-bold leading-[1.05] tracking-tighter text-black">
-						What happens next
-					</h2>
-
-					<div className="mt-6 space-y-4">
-						<div className="rounded-[18px] border border-[#e4e8ef] bg-[#fafbfc] px-4 py-4">
-							<p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] text-[#7d8598]">
-								Step 1
-							</p>
-							<p className="mt-2 font-sans text-[16px] leading-[1.6] text-[#344054]">
-								Continue into the tutorial to learn the core rules.
+				<div className="flex flex-[1.1] min-h-0 flex-col justify-between overflow-y-auto px-[clamp(24px,7vw,32px)] py-[clamp(28px,8vw,44px)] text-black">
+					<div>
+						<div className="inline-flex border-[1.827px] border-black px-[17.827px] py-[5.827px]">
+							<p className="font-mono text-[14px] font-bold leading-5 tracking-widest text-black">
+								{moduleInfo.phase}
 							</p>
 						</div>
 
-						<div className="rounded-[18px] border border-[#e4e8ef] bg-[#fafbfc] px-4 py-4">
-							<p className="font-sans text-[13px] font-semibold uppercase tracking-[0.18em] text-[#7d8598]">
-								Step 2
-							</p>
-							<p className="mt-2 font-sans text-[16px] leading-[1.6] text-[#344054]">
-								Then the game opens, and your decisions lead into the final stats screen.
-							</p>
+						<h1 className="mt-8 max-w-48 font-sans text-[clamp(32px,9vw,36px)] font-bold leading-tight tracking-[-0.06em] text-black">
+							Your Story
+							<br />
+							Begins
+						</h1>
+
+						<p className="mt-6 max-w-79.25 font-sans text-[clamp(15px,4vw,16px)] leading-relaxed text-[#4a5565]">
+							{moduleInfo.description}
+						</p>
+
+						<div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-[clamp(11px,2.8vw,12px)] font-semibold leading-4 text-[#6a7282]">
+							{moduleInfo.meta.map((item, index) => (
+								<div key={item} className="flex items-center gap-6">
+									<p>{item}</p>
+									{index < moduleInfo.meta.length - 1 ? <span aria-hidden="true">·</span> : null}
+								</div>
+							))}
 						</div>
 					</div>
 
-					<div className="mt-8 flex gap-4">
-						<Link href="/dashboard" className="flex h-13 flex-1 items-center justify-center border-2 border-black bg-white font-mono text-[15px] font-bold tracking-[0.18em] text-black">
-							[ BACK ]
+					<div className="mt-10">
+						<Link
+							href={tutorialHref}
+								className="flex min-h-[clamp(54px,14vw,58px)] items-center justify-center border-[1.827px] border-black px-6 text-center font-mono text-[clamp(15px,4vw,16px)] font-bold tracking-widest text-black"
+						>
+							[ BEGIN YOUR STORY ] →
 						</Link>
-						<Link href={`/modules/${slug}/tutorial`} className="flex h-13 flex-1 items-center justify-center bg-black font-mono text-[15px] font-bold tracking-[0.18em] text-white">
-							[ CONTINUE ]
+						<Link
+							href="/dashboard"
+								className="mx-auto mt-4 flex min-h-[clamp(46px,12vw,50px)] w-full max-w-44 items-center justify-center bg-black px-6 text-center font-mono text-[14px] font-bold tracking-widest text-white"
+						>
+								← [ BACK ]
 						</Link>
 					</div>
 				</div>
