@@ -39,21 +39,21 @@ function StatCard({
 	const isNegative = change < 0;
 
 	return (
-		<div className="rounded-[16px] border border-[#eceff3] bg-white px-4 py-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
+		<div className="rounded-2xl border border-[#eceff3] bg-white px-4 py-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]">
 			<div className="flex items-start justify-between gap-4">
 				<div>
 					<p className="font-sans text-[11px] font-semibold tracking-[0.18em] text-[#7d8598]">
 						{label}
 					</p>
 					<div className="mt-3 flex items-baseline gap-2">
-						<p className="font-sans text-[32px] font-bold leading-none tracking-[-0.05em] text-black">
+						<p className="font-sans text-[32px] font-bold leading-none tracking-tighter text-black">
 							{value}
 						</p>
 						<p className="font-sans text-[13px] text-[#94a0b4]">from {from}</p>
 					</div>
 				</div>
 
-				<div className="rounded-[4px] bg-[#f2f4f7] px-2 py-1 font-sans text-[12px] font-semibold text-[#a0a8b7]">
+				<div className="rounded-sm bg-[#f2f4f7] px-2 py-1 font-sans text-[12px] font-semibold text-[#a0a8b7]">
 					{isNegative ? "▼" : positive ? "▲" : "►"} {change > 0 ? `+${change}` : change}
 				</div>
 			</div>
@@ -62,7 +62,7 @@ function StatCard({
 				<div className={`h-full rounded-full ${isNegative ? "bg-[#aeb7c4]" : "bg-[#4b5563]"}`} style={{ width: barWidth }} />
 			</div>
 
-			<p className="mt-3 max-w-[260px] font-sans text-[13px] leading-[1.45] text-[#707989]">
+			<p className="mt-3 max-w-65 font-sans text-[13px] leading-[1.45] text-[#707989]">
 				{description}
 			</p>
 		</div>
@@ -101,7 +101,7 @@ export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: S
 
 	return (
 		<main className="min-h-screen bg-[#f5f6f8] px-4 py-8 text-black sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-			<section className="w-full max-w-[393px] lg:grid lg:max-w-[1180px] lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
+			<section className="w-full max-w-98.25 lg:grid lg:max-w-295 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
 				<div>
 					<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#98a0b3]">
 						ALL 5 PHASES COMPLETE
@@ -124,7 +124,7 @@ export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: S
 				</div>
 
 				<div className="mt-8 lg:mt-0">
-					<div className="rounded-[16px] bg-black px-4 py-5 text-white shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+					<div className="rounded-2xl bg-black px-4 py-5 text-white shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
 						<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#7d8598]">
 							REFLECTION
 						</p>
@@ -139,14 +139,21 @@ export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: S
 					<div className="mt-8 space-y-3">
 						<Link
 							href={`/modules/${moduleSlug}/tutorial`}
-							className="flex h-[44px] items-center justify-center border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
+							className="flex h-11 items-center justify-center border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
 						>
 							[ NEW STORY ]
 						</Link>
 
+						<Link
+							href="/dashboard"
+							className="flex h-11 items-center justify-center border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
+						>
+							[ DASHBOARD ]
+						</Link>
+
 						<button
 							type="button"
-							className="flex h-[44px] w-full items-center justify-center bg-black font-mono text-[14px] font-bold tracking-[0.18em] text-white transition-colors hover:bg-[#111827]"
+							className="flex h-11 w-full items-center justify-center bg-black font-mono text-[14px] font-bold tracking-[0.18em] text-white transition-colors hover:bg-[#111827]"
 						>
 							[ SHARE RESULTS ]
 						</button>
