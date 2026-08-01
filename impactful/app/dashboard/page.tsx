@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MobileBottomNav } from "../_components/MobileBottomNav";
 
 const moduleCards = [
 	{
@@ -64,13 +65,21 @@ function ModuleCard({ card }: { card: (typeof moduleCards)[number] }) {
 
 export default function DashboardPage() {
 	return (
-			<main className="min-h-dvh w-full overflow-hidden bg-white text-black">
+			<main className="min-h-dvh w-full overflow-hidden bg-white pb-28 text-black">
 				<section className="flex min-h-dvh w-full flex-col bg-white text-black">
 					<header className="bg-black px-[clamp(24px,8vw,32px)] pb-[clamp(28px,7vw,40px)] pt-[clamp(28px,7vw,40px)] text-white">
 						<div className="pt-[clamp(24px,12vw,48px)]">
-							<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#99a1af]">
-								WELCOME
-							</p>
+							<div className="flex items-center justify-between gap-3">
+								<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#99a1af]">
+									WELCOME
+								</p>
+								<Link
+									href="/profile"
+									className="font-mono text-[clamp(11px,2.8vw,12px)] uppercase tracking-[0.14em] text-[#99a1af]"
+								>
+									PROFILE →
+								</Link>
+							</div>
 							<h1 className="mt-[clamp(16px,4.5vw,20px)] font-sans text-[clamp(42px,12vw,48px)] font-bold leading-[1.03] tracking-[-0.06em] text-white">
 								Impact
 								<br />
@@ -110,6 +119,8 @@ export default function DashboardPage() {
 						</div>
 					</section>
 				</section>
+
+				<MobileBottomNav />
 			</main>
 	);
 }

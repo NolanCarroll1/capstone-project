@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MobileBottomNav } from "../../_components/MobileBottomNav";
 
 type ModuleInfo = {
 	title: string;
@@ -28,7 +29,7 @@ export default async function ModuleStartPage({ params }: { params: Promise<{ sl
 	const tutorialHref = `/modules/${slug}/tutorial`;
 
 	return (
-		<main className="min-h-dvh w-full overflow-x-hidden bg-white text-black">
+		<main className="min-h-dvh w-full overflow-x-hidden bg-white pb-28 text-black">
 			<section className="flex min-h-dvh w-full flex-col bg-white">
 				<div className="flex flex-[0.9] min-h-0 flex-col items-center justify-center bg-black px-[clamp(24px,7vw,32px)] py-[clamp(32px,9vw,48px)] text-white">
 					<Image
@@ -93,6 +94,8 @@ export default async function ModuleStartPage({ params }: { params: Promise<{ sl
 					</div>
 				</div>
 			</section>
+
+			<MobileBottomNav />
 		</main>
 	);
 }
