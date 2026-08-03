@@ -42,7 +42,12 @@ function canUseStorage() {
 }
 
 function normalizeEmail(email: string) {
-	return email.trim().toLowerCase();
+	const normalized = email.trim().toLowerCase();
+	if (normalized.endsWith("@impactful")) {
+		return `${normalized}.org`;
+	}
+
+	return normalized;
 }
 
 function isValidEmail(email: string) {
