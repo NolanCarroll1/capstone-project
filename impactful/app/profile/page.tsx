@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MobileBottomNav } from "../_components/MobileBottomNav";
+import { LogoutButton } from "../_components/LogoutButton";
+import { RequireSession } from "../_components/RequireSession";
 
 type ProfileAction = {
 	icon: string;
@@ -51,8 +53,9 @@ export default function ProfilePage() {
 	const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
 	return (
-		<main className="min-h-dvh bg-white pb-[calc(96px+env(safe-area-inset-bottom))] text-black sm:flex sm:justify-center">
-			<section className="mx-auto w-full max-w-[430px]">
+		<RequireSession>
+			<main className="min-h-dvh bg-white pb-[calc(96px+env(safe-area-inset-bottom))] text-black sm:flex sm:justify-center">
+				<section className="mx-auto w-full max-w-107.5">
 				<header className="flex items-center justify-between px-[clamp(14px,4.5vw,20px)] pb-[clamp(10px,2.8vw,16px)] pt-[calc(16px+env(safe-area-inset-top))]">
 					<Link href="/dashboard" className="font-mono text-[clamp(12px,3.2vw,14px)] text-[#6a7282]">
 						← BACK
@@ -68,8 +71,8 @@ export default function ProfilePage() {
 					<h1 className="mt-[clamp(12px,3.5vw,16px)] font-sans text-[clamp(28px,8.6vw,38px)] font-bold leading-[1.05] tracking-[-0.04em] text-black">
 						Jane Doe
 					</h1>
-					<p className="mt-1 break-words font-sans text-[clamp(13px,3.7vw,14px)] text-[#6a7282]">
-						Fellow · jane.doe@uvu.edu
+					<p className="mt-1 wrap-break-word font-sans text-[clamp(13px,3.7vw,14px)] text-[#6a7282]">
+						User · jane.doe@impactful.app
 					</p>
 					<button
 						type="button"
@@ -108,18 +111,22 @@ export default function ProfilePage() {
 							</button>
 						</div>
 
-						<Link href="/login" className="flex h-14 items-center justify-between px-5">
+						<LogoutButton
+							variant="ghost"
+							className="flex h-14 w-full items-center justify-between px-5 text-[#99a1af] hover:bg-transparent hover:text-[#6a7282]"
+						>
 							<div className="flex items-center gap-3">
 								<span className="font-sans text-[clamp(15px,4.2vw,16px)] leading-none text-[#99a1af]">→</span>
 								<span className="font-sans text-[clamp(13px,3.7vw,14px)] font-medium text-[#99a1af]">Sign Out</span>
 							</div>
 							<span className="font-sans text-[18px] leading-none text-[#d1d5dc]">›</span>
-						</Link>
+						</LogoutButton>
 					</div>
 				</div>
 			</section>
 
 			<MobileBottomNav />
 		</main>
+		</RequireSession>
 	);
 }
