@@ -73,14 +73,14 @@ export default function LoginPage() {
 	const isSignUp = mode === "sign-up";
 
 	return (
-		<main className="fixed inset-0 overflow-hidden bg-[#f3f1ec] text-black">
-			<section className="flex min-h-dvh w-full flex-col overflow-hidden bg-white">
-				<div className="flex-[0.58] min-h-0 overflow-hidden lg:flex-[0.56]">
+		<main className="min-h-screen overflow-y-auto bg-[#f3f1ec] text-black lg:overflow-hidden">
+			<section className="flex min-h-screen w-full flex-col bg-white lg:flex-row lg:overflow-hidden">
+				<div className="lg:w-[42%] lg:min-w-[420px] lg:max-w-[560px] lg:shrink-0">
 					<LoginHero />
 				</div>
 
-				<div className="flex flex-[0.42] min-h-0 flex-col overflow-hidden bg-white px-8 py-8 lg:flex-[0.44] lg:px-8 lg:py-8">
-					<div className="max-w-105 flex-1 overflow-hidden">
+				<div className="flex flex-1 flex-col bg-white px-8 py-8 lg:px-12 lg:py-12 xl:px-16 xl:py-16">
+					<div className="max-w-[560px] flex-1">
 						<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#a0a8b7]">
 							WELCOME
 						</p>
@@ -105,7 +105,7 @@ export default function LoginPage() {
 						</div>
 
 						<Link
-							href="/dashboard"
+							href={isSignUp ? "/modules" : "/dashboard"}
 							className="mt-8 flex h-12 items-center justify-center bg-black font-mono text-[clamp(14px,3.4vw,16px)] font-bold tracking-[0.18em] text-white"
 						>
 							{isSignUp ? "[ CREATE ACCOUNT ]" : "[ SIGN IN ]"}
