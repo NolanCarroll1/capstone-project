@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { MobileBottomNav } from "../_components/MobileBottomNav";
+import { RequireSession } from "../_components/RequireSession";
 
 const moduleCards = [
 	{
@@ -64,20 +66,29 @@ function ModuleCard({ card }: { card: (typeof moduleCards)[number] }) {
 
 export default function DashboardPage() {
 	return (
-			<main className="min-h-dvh w-full overflow-hidden bg-white text-black">
+		<RequireSession>
+			<main className="min-h-dvh w-full overflow-hidden bg-white pb-28 text-black">
 				<section className="flex min-h-dvh w-full flex-col bg-white text-black">
 					<header className="bg-black px-[clamp(24px,8vw,32px)] pb-[clamp(28px,7vw,40px)] pt-[clamp(28px,7vw,40px)] text-white">
 						<div className="pt-[clamp(24px,12vw,48px)]">
-							<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#99a1af]">
-								WELCOME
-							</p>
+							<div className="flex items-center justify-between gap-3">
+								<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#99a1af]">
+									WELCOME
+								</p>
+								<Link
+									href="/profile"
+									className="font-mono text-[clamp(11px,2.8vw,12px)] uppercase tracking-[0.14em] text-[#99a1af]"
+								>
+									PROFILE →
+								</Link>
+							</div>
 							<h1 className="mt-[clamp(16px,4.5vw,20px)] font-sans text-[clamp(42px,12vw,48px)] font-bold leading-[1.03] tracking-[-0.06em] text-white">
 								Impact
 								<br />
 								<span className="text-[#99a1af]">Starts Here</span>
 							</h1>
 							<p className="mt-[clamp(16px,4vw,20px)] max-w-[20.6rem] font-sans text-[clamp(15px,4vw,16px)] leading-[1.62] text-[#99a1af]">
-								A growing library of training modules to help fellows build the skills, ethics,
+								A growing library of training modules to help users build the skills, ethics,
 								and digital fluency to drive real social change.
 							</p>
 							<div className="mt-[clamp(36px,9vw,48px)] flex items-center gap-[clamp(12px,4vw,24px)] font-sans text-[clamp(11px,2.8vw,12px)] uppercase tracking-[0.08em] text-[#6a7282]">
@@ -110,6 +121,9 @@ export default function DashboardPage() {
 						</div>
 					</section>
 				</section>
+
+				<MobileBottomNav />
 			</main>
+		</RequireSession>
 	);
 }
