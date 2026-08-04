@@ -141,7 +141,9 @@ function normalizeModule(module: LearningModule): LearningModule {
 		.map((phase) => ({
 			...phase,
 			title: normalizeLegacyTerms((phase.title || "").trim()),
-			scenario: normalizeLegacyTerms((phase.scenario || "").trim()),
+			scenarioTitle: normalizeLegacyTerms((phase.scenarioTitle || "").trim()),
+			scenarioDescription: normalizeLegacyTerms((phase.scenarioDescription || "").trim()),
+			callout: normalizeLegacyTerms((phase.callout || "").trim()),
 			image: phase.image?.trim() || "",
 		}));
 
