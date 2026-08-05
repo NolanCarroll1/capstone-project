@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
+// Decorative assets exported from the Figma node
+const imgLoadAnimation1 = "http://localhost:3845/assets/a40b3b75b85cd3fb65704718346495d8a3f3abb7.png";
+const imgVector = "http://localhost:3845/assets/6f94b82ac36807c02bc700c1f9cb6d065d8b9546.svg";
+const imgFrame = "http://localhost:3845/assets/4b06a57733e51432639d099e3368a907a745c642.svg";
+
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
 type ChoiceKey = "A" | "B" | "C";
@@ -628,7 +633,12 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 	};
 
 	return (
-		<main className="min-h-screen bg-white text-black">
+		<main className="min-h-screen bg-white text-black relative overflow-hidden">
+			{/* Decorative/figma assets positioned behind the content */}
+			<img src={imgLoadAnimation1} alt="" aria-hidden className="pointer-events-none absolute -left-16 -top-24 w-72 opacity-80" />
+			<img src={imgVector} alt="" aria-hidden className="pointer-events-none absolute right-[-8%] top-10 w-96 opacity-30" />
+			<img src={imgFrame} alt="" aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 w-full opacity-5" />
+
 			<section className="mx-auto flex min-h-screen w-full max-w-98.25 flex-col px-6 py-10 lg:max-w-98.25">
 				<div className="flex items-center justify-between gap-4">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
