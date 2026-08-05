@@ -8,9 +8,6 @@ import { useRouter } from "next/navigation";
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
 
-// Top-half decorative/arrow asset from Figma (static for now)
-const figmaTopArrow = "https://www.figma.com/api/mcp/asset/9589f4be-6a14-4fd8-bf88-49b6980f03fd.png";
-
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
 type ChoiceKey = "A" | "B" | "C";
@@ -705,12 +702,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 	return (
 		<main className="min-h-screen bg-white text-black">
 			<section className="mx-auto flex min-h-screen w-full max-w-98.25 flex-col px-6 py-10 lg:max-w-98.25">
-				{/* Figma static overlay image (top half) — decorative, pointer-events-none */}
-				<div className="figma-top-overlay relative w-full pointer-events-none" aria-hidden="true" style={{height: 220}}>
-					<img src={figmaTopArrow} alt="" className="absolute left-1/2 top-0 -translate-x-1/2 object-none" style={{maxWidth: "900px", opacity: 0.98}} />
-				</div>
-
-				
 				<div className="flex items-center justify-between gap-4">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
 						{currentRound.phaseLabel}
