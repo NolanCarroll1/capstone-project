@@ -417,10 +417,6 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 				</div>
 			) : null}
 
-			{/* Small inline choose button kept for accessibility */}
-			<FigmaButton ariaLabel="Choose This Path" className="mt-4 flex h-11 w-full items-center justify-center rounded-full border border-[#ffd7a8] bg-orange-500 text-white font-bold" onClick={onChoose} disabled={isComplete}>
-				Choose This Path
-			</FigmaButton>
 		</article>
 	);
 });
@@ -503,19 +499,6 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 				</p>
 			)}
 
-			<div className="mt-4">
-				<button
-					type="button"
-					disabled={isComplete}
-					onClick={(event) => {
-						event.stopPropagation();
-						onChoose();
-					}}
-					className="flex h-11 w-full items-center justify-center rounded-xl border border-[#dfe4ea] bg-[#f7f6f2] px-4 font-mono text-[11px] font-bold tracking-[0.22em] text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-				>
-					[ CHOOSE THIS PATH ]
-				</button>
-			</div>
 		</article>
 	);
 });
@@ -712,7 +695,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 						</button>
 					</div>
 				</div>
-		</div>
+		
 		<div className="flex items-center justify-between gap-4 pt-2">
 				<p className="font-sans text-[12px] text-[#99a1af]">
 					Choices made: {state.choiceCount} / 5
