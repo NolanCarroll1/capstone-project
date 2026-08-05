@@ -5,7 +5,7 @@
 @theme inline {
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -372,7 +372,7 @@ body {
 
 .admin-ring-value {
   position: absolute;
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-jetbrains-mono), monospace;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;

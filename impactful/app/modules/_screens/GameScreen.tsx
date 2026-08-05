@@ -1,12 +1,15 @@
 "use client";
 
 import { forwardRef, useEffect, useReducer, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { Mascot } from "../../admin/_components/Mascot";
 import { useRouter } from "next/navigation";
 
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
-// Illustration asset exported from Figma for the scenario artwork
-const figmaIllustration = "https://www.figma.com/api/mcp/asset/1e8b3832-3267-473e-ac7c-e9e8bfe858a0.svg";
+
+// Top-half decorative/arrow asset from Figma (static for now)
+const figmaTopArrow = "https://www.figma.com/api/mcp/asset/9589f4be-6a14-4fd8-bf88-49b6980f03fd.png";
 
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
@@ -47,6 +50,7 @@ type ChoiceCardProps = {
 	isComplete: boolean;
 	onActivate: () => void;
 	onChoose: () => void;
+	roundPhase?: number;
 };
 
 type Action =
@@ -325,12 +329,14 @@ function FigmaButton({
 	onClick,
 	ariaLabel,
 	disabled,
+	style,
 }: {
 	children: string;
 	className: string;
 	onClick?: () => void;
 	ariaLabel?: string;
 	disabled?: boolean;
+	style?: CSSProperties;
 }) {
 	return (
 		<button
@@ -342,6 +348,7 @@ function FigmaButton({
 				onClick?.();
 			}}
 			className={className}
+			style={style}
 		>
 			{children}
 		</button>
@@ -360,7 +367,14 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 	return (
 		<article
 			ref={ref}
-			className={`${firstRoundCardBase} ${cardWidthClass} border border-[#e6e9ee]`}
+			className={`${cardWidthClass} shrink-0 snap-center text-[#0f1724]`}
+			style={{
+				backgroundColor: '#ffffff',
+				border: '1.827px solid #e5e7eb',
+				borderRadius: 24,
+				padding: 25.827,
+				boxShadow: '0px 4px 0px #e5e7eb',
+			}}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -391,26 +405,31 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 			</div>
 
 			{isActive ? (
-				<div className="mt-4 rounded-lg border border-[#eef2f6] bg-[#f7f8fa] p-3 text-[#121212]">
+				<div style={{
+					border: '1.827px solid #e5e7eb',
+					borderRadius: 8,
+					padding: 13.827,
+					backgroundColor: '#ffffff'
+				}}>
 					{/* Preview area */}
 					<div className="flex flex-col gap-3">
 						<div>
-							<p className="font-sans text-sm font-semibold">{choice.id === "A" ? "We use cookies" : "Preview"}</p>
-							<p className="mt-1 text-sm text-slate-600">{choice.id === "A" ? "We collect browsing data to improve your experience. You choose what to share." : choice.preview}</p>
+							<p className="font-sans text-sm font-semibold" style={{fontSize:12}}>{choice.id === "A" ? "We use cookies" : "Preview"}</p>
+							<p className="mt-1 text-sm" style={{color: '#6a7282', fontSize:12}}>{choice.id === "A" ? "We collect browsing data to improve your experience. You choose what to share." : choice.preview}</p>
 						</div>
 						<div className="flex gap-3">
 							{choice.id === "A" ? (
 								<>
-									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded-full bg-green-100 text-green-800 font-semibold">Accept</FigmaButton>
-									<FigmaButton ariaLabel="Decline" className="flex h-9 flex-1 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-semibold">Decline</FigmaButton>
+									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#85d79a', color: '#0f6826', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept</FigmaButton>
+									<FigmaButton ariaLabel="Decline" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#ffe0d7', color: '#9f2600', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Decline</FigmaButton>
 								</>
 							) : choice.id === "B" ? (
 								<>
-									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded-full bg-green-100 text-green-800 font-semibold">Accept</FigmaButton>
-									<FigmaButton ariaLabel="Learn More" className="flex h-9 flex-1 items-center justify-center rounded-full bg-sky-900 text-white font-semibold">Learn More</FigmaButton>
+									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#dcf5e3', color: '#186620', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept</FigmaButton>
+									<FigmaButton ariaLabel="Learn More" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#d9f0f7', color: '#004b6a', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Learn More</FigmaButton>
 								</>
 							) : (
-								<FigmaButton ariaLabel="Accept All" className="flex h-9 w-full items-center justify-center rounded-full bg-sky-900 text-white font-semibold">Accept All</FigmaButton>
+								<FigmaButton ariaLabel="Accept All" className="flex h-9 w-full items-center justify-center rounded" style={{backgroundColor: '#d9f0f7', color: '#004b6a', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept All</FigmaButton>
 							)}
 						</div>
 					</div>
@@ -422,7 +441,7 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 });
 
 const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose },
+	{ choice, isActive, isComplete, onActivate, onChoose, roundPhase },
 	ref,
 ) {
 	const statTiles = [
@@ -431,12 +450,152 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 		{ label: "Pop.", value: choice.delta.population ?? 0 },
 	] as const;
 
+	function renderVariantPreview() {
+		const key = `${roundPhase}-${choice.id}`;
+		switch (key) {
+			case "2-A":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Quick start</p>
+						<div className="mt-2 flex flex-col gap-2">
+							<input aria-label="email" placeholder="Email" className="rounded-md border border-[#e6e9ee] px-3 py-2 text-sm" />
+							<input aria-label="password" placeholder="Password" className="rounded-md border border-[#e6e9ee] px-3 py-2 text-sm" />
+							<div className="mt-2 flex gap-2">
+								<button className="flex-1 rounded-md" style={{backgroundColor:'#85d79a', color:'#0f6826', fontWeight:700, padding:'8px 12px'}}>Join</button>
+								<button className="flex-1 rounded-md border border-[#dfe6ea]" style={{backgroundColor:'#ffffff', color:'#374151', padding:'8px 12px'}}>Maybe later</button>
+							</div>
+						</div>
+					</div>
+				);
+			case "2-B":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Guided setup — Step 1 of 3</p>
+						<div className="mt-3 h-3 w-full rounded-full bg-[#eef3f7] overflow-hidden">
+							<div style={{width:'33%', height:'100%', background:'#004b6a'}} />
+						</div>
+						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Continue</button>
+					</div>
+				);
+			case "2-C":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Social login</p>
+						<div className="mt-3 flex flex-col gap-2">
+							<button className="rounded-md border px-3 py-2 text-sm" style={{borderColor:'#d1d5dc'}}>Continue with Google</button>
+							<button className="rounded-md border px-3 py-2 text-sm" style={{borderColor:'#d1d5dc'}}>Continue with Facebook</button>
+						</div>
+					</div>
+				);
+			case "3-A":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Respect the no</p>
+						<p className="mt-2 text-sm text-[#6a7282]">Notifications will remain off. Users can enable them in settings.</p>
+						<button className="mt-3 rounded-md" style={{backgroundColor:'#dcf5e3', color:'#186620', fontWeight:700, padding:'8px 12px'}}>Got it</button>
+					</div>
+				);
+			case "3-B":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Gentle reminder</p>
+						<p className="mt-2 text-sm text-[#6a7282]">We may show you a reminder after 30 days. Once per month max.</p>
+						<div className="mt-3 flex gap-2">
+							<button className="flex-1 rounded-md border" style={{borderColor:'#e6e9ee', padding:'8px 12px'}}>Later</button>
+							<button className="flex-1 rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Yes</button>
+						</div>
+					</div>
+				);
+			case "3-C":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Persistent prompts</p>
+						<p className="mt-2 text-sm text-[#6a7282]">We will ask on every visit with stronger language.</p>
+						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#ffffff', color:'#121212', border:'1px solid #d1d5dc', padding:'8px 12px'}}>Allow Notifications</button>
+					</div>
+				);
+			case "4-A":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Better content</p>
+						<ul className="mt-2 list-inside list-decimal text-sm text-[#374151]">
+							<li>Curated listings</li>
+							<li>Community highlights</li>
+							<li>Quality filters</li>
+						</ul>
+					</div>
+				);
+			case "4-B":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Gamification</p>
+						<div className="mt-3 flex items-center gap-2">
+							<div className="rounded-full px-3 py-1" style={{background:'#ffecd8', color:'#b45309'}}>Streak 5</div>
+							<button className="ml-auto rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', padding:'8px 12px', fontWeight:700}}>Redeem</button>
+						</div>
+					</div>
+				);
+			case "4-C":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">FOMO engine</p>
+						<p className="mt-2 text-sm text-[#6a7282]">Only 2 items left — exclusive deal.</p>
+						<div className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-3 py-1 text-white">00:12</div>
+					</div>
+				);
+			case "5-A":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Transparent checkout</p>
+						<div className="mt-2 text-sm text-[#374151]">
+							<p>Item total: $24.00</p>
+							<p>Shipping: $4.00</p>
+							<p className="font-bold mt-1">Total: $28.00</p>
+						</div>
+						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#85d79a', color:'#0f6826', fontWeight:700, padding:'8px 12px'}}>Confirm Order</button>
+					</div>
+				);
+			case "5-B":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Progressive disclosure</p>
+						<p className="mt-2 text-sm text-[#6a7282]">Prices shown now, shipping after address.</p>
+						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Calculate Shipping</button>
+					</div>
+				);
+			case "5-C":
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Drip pricing</p>
+						<ul className="mt-2 text-sm text-[#374151]">
+							<li>Base price: $10.00</li>
+							<li>Service fee: $2.00</li>
+							<li>Processing: $1.00</li>
+							<li className="font-bold mt-1">Total: $13.00</li>
+						</ul>
+					</div>
+				);
+			default:
+				return (
+					<div>
+						<p className="font-sans text-sm font-semibold">Preview</p>
+						<p className="mt-2 text-sm text-[#6a7282]">{choice.preview}</p>
+					</div>
+				);
+		}
+	}
+
 	return (
 		<article
 			ref={ref}
-			className={`w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5 ${
-				isActive ? "border-2 border-black" : "border border-transparent"
-			}`}
+			className={`w-85.5 shrink-0 snap-center transition-colors duration-200 lg:w-88.5`}
+			style={{
+				backgroundColor: '#ffffff',
+				border: isActive ? '2px solid #000000' : '1.827px solid #e5e7eb',
+				borderRadius: 24,
+				padding: 20,
+				boxShadow: isActive ? '0px 6px 0px #e5e7eb' : '0px 4px 0px #e5e7eb',
+			}}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -457,12 +616,12 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 					onActivate();
 				}}
 			>
-				<p className="font-mono text-[22px] font-bold leading-none text-white">{choice.name}</p>
+				<p className="font-mono text-[22px] font-bold leading-none text-[#0f1724]">{choice.name}</p>
 				<FigmaChevron expanded={isActive} />
 			</button>
 
 			<div className="flex flex-col gap-1">
-				<h2 className="font-sans text-[17px] font-bold leading-none tracking-normal text-white">
+				<h2 className="font-sans text-[17px] font-bold leading-none tracking-normal text-[#0f1724]">
 					{choice.title}
 				</h2>
 				<p className="max-w-75.5 font-sans text-[17px] font-normal leading-none tracking-normal text-[#9aa4b2]">
@@ -473,24 +632,7 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 			{isActive ? (
 				<div className="mt-4 rounded-2xl border-2 border-[#7c7c7c] bg-white p-3 text-[#121212]">
 					<div className="flex flex-col gap-4">
-						<div className="flex flex-col gap-1">
-							<p className="font-sans text-[15px] font-bold leading-none text-[#121212]">Preview</p>
-							<p className="font-sans text-[13px] font-normal leading-none text-[#323232]">
-								{choice.preview}
-							</p>
-						</div>
-						<div className="flex gap-4">
-							{statTiles.map((stat) => (
-								<div key={stat.label} className="flex flex-1 flex-col items-center justify-center rounded-full bg-[#f7f8fa] px-2 py-2 text-center">
-									<p className="font-sans text-[9px] font-semibold uppercase tracking-[0.16em] text-[#97a0b0]">
-										{stat.label}
-									</p>
-									<p className={`mt-1 font-mono text-[13px] font-bold ${stat.value >= 0 ? "text-black" : "text-[#a01b1b]"}`}>
-										{stat.value >= 0 ? `+${stat.value}` : stat.value}
-									</p>
-								</div>
-							))}
-						</div>
+						{renderVariantPreview()}
 					</div>
 				</div>
 			) : (
@@ -563,6 +705,12 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 	return (
 		<main className="min-h-screen bg-white text-black">
 			<section className="mx-auto flex min-h-screen w-full max-w-98.25 flex-col px-6 py-10 lg:max-w-98.25">
+				{/* Figma static overlay image (top half) — decorative, pointer-events-none */}
+				<div className="figma-top-overlay relative w-full pointer-events-none" aria-hidden="true" style={{height: 220}}>
+					<img src={figmaTopArrow} alt="" className="absolute left-1/2 top-0 -translate-x-1/2 object-none" style={{maxWidth: "900px", opacity: 0.98}} />
+				</div>
+
+				
 				<div className="flex items-center justify-between gap-4">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
 						{currentRound.phaseLabel}
@@ -579,9 +727,10 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 				</div>
 
 				<div className="pt-8">
-					{/* Illustration + callout layout from Figma */}
+					{/* Illustration + callout layout from Figma (mascot replaced) */}
 					<div className="flex items-start gap-5">
-						<img src={figmaIllustration} alt="scenario artwork" className="h-24 w-24 flex-none rounded-lg object-contain" />
+						{/* Use the admin Mascot component for consistent branding */}
+						<Mascot size={96} className="flex-none rounded-lg" />
 						<div className="rounded-lg p-5" style={{ backgroundColor: 'rgba(85,137,244,0.05)' }}>
 							<p className="font-sans text-xs font-bold leading-4 tracking-widest text-slate-400">
 								SCENARIO
@@ -650,7 +799,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 								})
 							: currentRound.choices.map((choice) => {
 								const isActive = choice.id === expandedChoice;
-
+						
 								return (
 									<ChoiceCard
 										key={choice.id}
@@ -660,6 +809,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										choice={choice}
 										isActive={isActive}
 										isComplete={isComplete}
+										roundPhase={currentRound.phase}
 										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
 										onChoose={() => choosePath(choice)}
 									/>
