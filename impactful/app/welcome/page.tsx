@@ -38,17 +38,17 @@ export default function WelcomePage() {
 	const baseHeight = isTabletOrDesktop ? DESKTOP_BASE_HEIGHT : MOBILE_BASE_HEIGHT;
 	const widthScale = (viewport.width - EDGE_PADDING * 2) / baseWidth;
 	const heightScale = (viewport.height - EDGE_PADDING * 2) / baseHeight;
-	const scale = Math.min(widthScale, heightScale);
+	const scale = isTabletOrDesktop ? Math.min(widthScale, heightScale) : Math.max(widthScale, heightScale);
 
 	return (
 			<main className="fixed inset-0 overflow-hidden bg-black text-white">
-				<div className="relative h-full w-full overflow-hidden" style={{ padding: EDGE_PADDING }}>
+				<div className="relative min-h-full w-full overflow-hidden" style={{ padding: isTabletOrDesktop ? EDGE_PADDING : 0 }}>
 					<div
-						className="absolute left-1/2 top-1/2 origin-center"
+						className={isTabletOrDesktop ? "absolute left-1/2 top-1/2 origin-center" : "absolute left-1/2 top-0 origin-top"}
 						style={{
 							width: `${baseWidth}px`,
 							height: `${baseHeight}px`,
-							transform: `translate(-50%, -50%) scale(${scale})`,
+							transform: isTabletOrDesktop ? `translate(-50%, -50%) scale(${scale})` : "translateX(-50%)",
 						}}
 					>
 						{isTabletOrDesktop ? (
@@ -77,7 +77,7 @@ export default function WelcomePage() {
 						src="/assets/Top%20left%20corner%20dots.svg"
 						alt=""
 						className="pointer-events-none absolute select-none"
-						style={{ left: 0, top: 0, height: 132, width: 55 }}
+							style={{ left: 0, top: 10, height: 132, width: 55 }}
 						draggable={false}
 					/>
 					<img
@@ -114,11 +114,14 @@ export default function WelcomePage() {
 						</h1>
 					</div>
 
-					<div className="absolute left-1/2 z-10 -translate-x-1/2 text-center" style={{ top: 499, width: 121 }}>
-						<p
-							className="whitespace-nowrap font-mono text-[20px] font-normal italic tracking-normal text-[#4ea6c5]"
-							style={{ lineHeight: "normal" }}
-						>
+						<div className="absolute left-1/2 z-10 -translate-x-1/2 text-center" style={{ top: 485, width: 121 }}>
+							<p
+								className="whitespace-nowrap font-mono text-[24px] font-normal italic tracking-normal text-[#4ea6c5]"
+								style={{
+									lineHeight: "normal",
+									fontFamily: "var(--font-space-mono), ui-monospace, monospace",
+								}}
+							>
 							Impact
 						</p>
 					</div>
@@ -126,7 +129,7 @@ export default function WelcomePage() {
 					<div className="absolute z-10" style={{ left: 71, top: 533, width: 246, height: 56 }}>
 						<Link
 							href="/login"
-							className="absolute left-0 top-0 flex h-[56px] w-[247px] items-center justify-center bg-[#ff9311] font-mono text-[16px] font-bold tracking-[1.6px] text-white transition-colors hover:bg-[#ffa733]"
+								className="absolute left-0 top-0 flex h-[56px] w-[247px] items-center justify-center bg-[#ff8d00] font-mono text-[20px] font-bold tracking-[1.6px] text-white transition-colors hover:bg-[#ff9d1a]"
 						>
 							[ STARTS HERE ]
 						</Link>
@@ -135,7 +138,7 @@ export default function WelcomePage() {
 					<div className="absolute z-10 h-[141px] w-[131px]" style={{ left: 129, top: 266 }}>
 						<div className="pointer-events-none absolute inset-0 overflow-hidden">
 							<img
-								src="/assets/welcome-logo-node-1083-510.png"
+								src="/assets/welcome-logo-node-686-16004-latest.png"
 								alt=""
 								className="pointer-events-none absolute max-w-none select-none"
 								style={{ height: "441.38%", width: "711.11%", left: "-19.91%", top: "-100%" }}
