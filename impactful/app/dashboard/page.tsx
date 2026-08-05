@@ -1,128 +1,280 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { MobileBottomNav } from "../_components/MobileBottomNav";
+import { Menu, Search, X } from "lucide-react";
+import { useState } from "react";
+
+import { LogoutButton } from "../_components/LogoutButton";
 import { RequireSession } from "../_components/RequireSession";
 
-const moduleCards = [
+type DashboardTile = {
+	label: string;
+	title: string;
+	background: string;
+	badgeBackground: string;
+	opacity: number;
+	href?: string;
+};
+
+const moduleTiles: DashboardTile[] = [
 	{
-		href: "/modules/deceptive-design",
 		label: "LIVE",
 		title: "Deceptive Design",
-		variant: "live" as const,
+		background: "#ff8d00",
+		badgeBackground: "rgba(255,255,255,0.2)",
+		opacity: 1,
+		href: "/modules/deceptive-design",
 	},
 	{
 		label: "SOON",
-		title: "Community Listening",
-		variant: "soon" as const,
+		title: "",
+		background: "#6b7280",
+		badgeBackground: "rgba(0,0,0,0.2)",
+		opacity: 0.7,
 	},
 	{
 		label: "SOON",
-		title: "Ethical Storytelling",
-		variant: "soon" as const,
+		title: "",
+		background: "#7c3aed",
+		badgeBackground: "rgba(0,0,0,0.2)",
+		opacity: 0.7,
 	},
 	{
 		label: "SOON",
-		title: "Advocacy 101",
-		variant: "soon" as const,
+		title: "",
+		background: "#0e9f6e",
+		badgeBackground: "rgba(0,0,0,0.2)",
+		opacity: 0.7,
 	},
-] as const;
+];
 
-function ModuleCard({ card }: { card: (typeof moduleCards)[number] }) {
-	const isLive = card.variant === "live";
-	const content = (
+function WelcomeMascot({
+	width,
+	height,
+	className,
+}: {
+	width: number;
+	height: number;
+	className?: string;
+}) {
+	return (
 		<div
-			className={`flex aspect-156/200 w-full flex-col justify-between rounded-2xl p-[clamp(16px,4vw,24px)] ${
-				isLive ? "bg-black text-white" : "bg-[#f3f4f6] text-black opacity-60"
-			}`}
+			className={`relative overflow-hidden ${className ?? ""}`}
+			style={{ width, height }}
+		>
+			<Image
+				src="/assets/welcome-logo-node-686-16004-latest.png"
+				alt=""
+				aria-hidden
+				width={711}
+				height={441}
+				unoptimized
+				className="pointer-events-none absolute max-w-none select-none"
+				style={{
+					height: "441.38%",
+					width: "711.11%",
+					left: "-19.91%",
+					top: "-100%",
+				}}
+			/>
+		</div>
+	);
+}
+
+function DashboardTopMenu() {
+	const [open, setOpen] = useState(false);
+
+	return (
+		<>
+			<button
+				type="button"
+				aria-label={open ? "Close menu" : "Open menu"}
+				onClick={() => setOpen((value) => !value)}
+				className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-[#08394d] transition-colors hover:bg-[#dfe7ef]"
+			>
+				{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+			</button>
+
+			{open ? (
+				<div className="fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)}>
+					<nav
+						aria-label="Dashboard navigation"
+						onClick={(event) => event.stopPropagation()}
+						className="absolute left-1/2 top-0 w-full max-w-[393px] -translate-x-1/2 rounded-b-[28px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.14)]"
+					>
+						<div className="flex items-center justify-between px-6 pb-4 pt-6">
+							<p className="font-mono text-[12px] font-bold tracking-[0.1em] text-[#99a1af]">MENU</p>
+							<button
+								type="button"
+								aria-label="Close menu"
+								onClick={() => setOpen(false)}
+								className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#99a1af] transition-colors hover:bg-[#f3f4f6]"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+
+						<div className="px-6 pb-6">
+							<div className="flex items-center gap-3 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-[17px] py-[13px]">
+								<Search className="h-4 w-4 text-[#99a1af]" />
+								<span className="font-sans text-[14px] text-[#999999]">Search</span>
+							</div>
+						</div>
+
+						<div className="px-6 pb-3">
+							<p className="font-mono text-[11px] tracking-[0.06em] text-[#99a1af]">NAVIGATE</p>
+						</div>
+
+						<ul className="space-y-5 px-6 pb-8">
+							<li>
+								<Link
+									href="/profile"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									My Profile
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/admin"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									Admin Panel
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/modules/deceptive-design"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									Deceptive Design
+								</Link>
+							</li>
+							<li className="pt-1">
+								<LogoutButton
+									redirectTo="/login"
+									onLoggedOut={() => setOpen(false)}
+									variant="ghost"
+									className="h-auto justify-start p-0 font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666] hover:bg-transparent hover:text-[#444]"
+								>
+									Log out
+								</LogoutButton>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			) : null}
+		</>
+	);
+}
+
+function ModuleTile({ label, title, background, badgeBackground, opacity, href }: DashboardTile) {
+	const tile = (
+		<div
+			className="relative aspect-[164.68/189.99] overflow-hidden rounded-[18px] p-4 shadow-[4px_4px_2px_rgba(0,0,0,0.1)]"
+			style={{ backgroundColor: background, opacity }}
 		>
 			<span
-				className={`inline-flex w-fit px-[clamp(10px,2.8vw,12px)] py-[clamp(4px,1vw,4px)] font-sans text-[clamp(10px,2.5vw,12px)] font-bold uppercase tracking-widest ${
-					isLive ? "bg-white text-black" : "bg-[#d1d5dc] text-[#364153]"
-				}`}
+				className="inline-flex rounded-full px-2 py-0.5 font-mono text-[10px] font-bold leading-3.75 tracking-[0.04em] text-white"
+				style={{ backgroundColor: badgeBackground }}
 			>
-				{card.label}
+				{label}
 			</span>
-			<p
-				className={`max-w-[8.8rem] font-sans text-[clamp(17px,4.5vw,20px)] font-bold leading-[1.12] tracking-[-0.04em] ${
-					isLive ? "text-white" : "text-[#111827]"
-				}`}
-			>
-				{card.title}
-			</p>
+			<div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/20" />
+			<WelcomeMascot
+				width={104}
+				height={113}
+				className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-78%]"
+			/>
+			{title ? (
+				<p className="absolute bottom-4 left-4 max-w-30 font-sans text-[16px] font-semibold leading-6 tracking-[-0.03em] text-white">
+					{title}
+				</p>
+			) : null}
 		</div>
 	);
 
-	if (isLive && card.href) {
+	if (href) {
 		return (
-			<Link href={card.href} className="block">
-				{content}
+			<Link href={href} className="block">
+				{tile}
 			</Link>
 		);
 	}
 
-	return content;
+	return tile;
 }
 
 export default function DashboardPage() {
 	return (
 		<RequireSession>
-			<main className="min-h-dvh w-full overflow-hidden bg-white pb-28 text-black">
-				<section className="flex min-h-dvh w-full flex-col bg-white text-black">
-					<header className="bg-black px-[clamp(24px,8vw,32px)] pb-[clamp(28px,7vw,40px)] pt-[clamp(28px,7vw,40px)] text-white">
-						<div className="pt-[clamp(24px,12vw,48px)]">
-							<div className="flex items-center justify-between gap-3">
-								<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#99a1af]">
-									WELCOME
-								</p>
-								<Link
-									href="/profile"
-									className="font-mono text-[clamp(11px,2.8vw,12px)] uppercase tracking-[0.14em] text-[#99a1af]"
-								>
-									PROFILE →
-								</Link>
-							</div>
-							<h1 className="mt-[clamp(16px,4.5vw,20px)] font-sans text-[clamp(42px,12vw,48px)] font-bold leading-[1.03] tracking-[-0.06em] text-white">
-								Impact
-								<br />
-								<span className="text-[#99a1af]">Starts Here</span>
-							</h1>
-							<p className="mt-[clamp(16px,4vw,20px)] max-w-[20.6rem] font-sans text-[clamp(15px,4vw,16px)] leading-[1.62] text-[#99a1af]">
-								A growing library of training modules to help users build the skills, ethics,
-								and digital fluency to drive real social change.
+			<main className="min-h-dvh w-full bg-white text-black">
+				<section className="mx-auto min-h-dvh w-full max-w-107.5 bg-white">
+					<header className="border-b border-[#f3f4f6] bg-[#eef1f4] px-6 py-4">
+						<div className="flex items-center justify-between">
+							<p className="font-sans text-[26px] font-bold lowercase leading-none tracking-[-0.04em] text-[#2b3b38]">
+								impactful
 							</p>
-							<div className="mt-[clamp(36px,9vw,48px)] flex items-center gap-[clamp(12px,4vw,24px)] font-sans text-[clamp(11px,2.8vw,12px)] uppercase tracking-[0.08em] text-[#6a7282]">
-								<span>5 phases per module</span>
-								<span className="text-[#3f4654]">·</span>
-								<span>10+ scenarios</span>
-							</div>
+							<DashboardTopMenu />
 						</div>
 					</header>
 
-					<section className="flex-1 bg-white px-[clamp(24px,8vw,32px)] py-[clamp(24px,7vw,40px)] text-black">
-						<div className="flex items-end justify-between gap-4">
-							<div>
-								<p className="font-sans text-[clamp(11px,2.8vw,12px)] font-semibold uppercase tracking-[1.2px] text-[#6a7282]">
-									MODULES
-								</p>
-								<h2 className="mt-2 font-sans text-[clamp(22px,6vw,24px)] font-bold leading-[1.05] tracking-tighter text-black">
-									Choose your training
-								</h2>
+					<div className="px-6 pb-10 pt-8">
+						<div className="flex items-center justify-between gap-3">
+							<div className="flex items-center gap-4">
+								<WelcomeMascot width={73} height={100} className="pointer-events-none shrink-0" />
+								<div>
+									<h1 className="font-sans text-[20px] font-bold leading-7.5 tracking-[-0.04em] text-[#2a3447]">
+										Hi, Jane
+									</h1>
+									<p className="mt-1 font-sans text-[12px] leading-4.5 text-black/50">
+										Let&apos;s learn something new!
+									</p>
+								</div>
 							</div>
-							<p className="pb-1 font-sans text-[clamp(11px,2.8vw,12px)] font-bold uppercase tracking-[0.08em] text-[#99a1af]">
-								1 OF 9 LIVE
-							</p>
+							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0e6b7c] font-sans text-[14px] font-bold text-white">
+								JD
+							</div>
 						</div>
 
-						<div className="mt-[clamp(24px,6vw,32px)] grid grid-cols-2 gap-[clamp(12px,4vw,16px)]">
-							{moduleCards.map((card) => (
-								<ModuleCard key={card.title} card={card} />
+						<div className="mt-5 flex h-12.75 items-center gap-3 rounded-[15px] bg-[#eef1f4] px-4">
+							<Search className="h-4.5 w-4.5 text-black/40" />
+							<span className="font-sans text-[16px] leading-6 text-black/40">Search modules</span>
+						</div>
+
+						<p className="pb-3 pt-6 font-sans text-[16px] font-semibold leading-6 text-black">Continue module</p>
+
+						<Link
+							href="/modules/deceptive-design"
+							className="relative block overflow-hidden rounded-[18px] bg-[#08394d] px-5 py-5 text-white shadow-[4px_4px_2px_rgba(0,0,0,0.1)]"
+						>
+							<div className="absolute -left-8 -top-8 h-44 w-44 rounded-full bg-[#ff8d00] opacity-20" />
+							<div className="relative">
+								<p className="font-sans text-[30px] font-bold leading-[22.5px] tracking-[-0.03em]">Deceptive Design</p>
+								<p className="mt-3 font-sans text-[8px] font-medium leading-3 text-white/60">Phase 1 | Cookie Consent</p>
+								<div className="mt-4 flex items-center gap-3">
+									<div className="h-0.75 flex-1 rounded-full bg-white/20">
+										<div className="h-full w-1/5 rounded-full bg-[#ff8d00]" />
+									</div>
+									<span className="font-sans text-[7px] leading-2.5 text-white/60">20%</span>
+									<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ff8d00] text-[10px] text-white">▶</span>
+								</div>
+							</div>
+						</Link>
+
+						<p className="pb-3 pt-8 font-sans text-[16px] font-semibold leading-6 text-black">All Modules</p>
+
+						<div className="grid grid-cols-2 gap-4">
+							{moduleTiles.map((tile) => (
+								<ModuleTile key={`${tile.label}-${tile.background}`} {...tile} />
 							))}
 						</div>
-					</section>
+					</div>
 				</section>
-
-				<MobileBottomNav />
 			</main>
 		</RequireSession>
 	);
