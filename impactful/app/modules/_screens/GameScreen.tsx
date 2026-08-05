@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
-// Decorative assets exported from the Figma node
-const imgLoadAnimation1 = "/assets/figma-capstone/a21a30c8-9e09-48b8-904e-4bca4aada7c1.png";
-const imgVector = "/assets/figma-capstone/40d1994e-0337-441e-82ae-86e3e5ddde09.svg";
-const imgFrame = "http://localhost:3845/assets/4b06a57733e51432639d099e3368a907a745c642.svg";
-
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
 type ChoiceKey = "A" | "B" | "C";
@@ -49,7 +44,6 @@ type ChoiceCardProps = {
 	isComplete: boolean;
 	onActivate: () => void;
 	onChoose: () => void;
-	className?: string;
 };
 
 type Action =
@@ -355,7 +349,7 @@ const firstRoundCardBase =
 	"w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5";
 
 const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function FirstRoundChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose, className },
+	{ choice, isActive, isComplete, onActivate, onChoose },
 	ref,
 ) {
 	const cardWidthClass = choice.id === "B" ? "lg:w-87.5" : "lg:w-88.5";
@@ -364,7 +358,7 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 	return (
 		<article
 			ref={ref}
-			className={`${firstRoundCardBase} ${cardWidthClass} ${isBordered ? "border-2 border-black" : "border border-transparent"} ${className ?? ""}`}
+			className={`${firstRoundCardBase} ${cardWidthClass} ${isBordered ? "border-2 border-black" : "border border-transparent"}`}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -482,7 +476,7 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 });
 
 const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose, className },
+	{ choice, isActive, isComplete, onActivate, onChoose },
 	ref,
 ) {
 	const statTiles = [
@@ -496,7 +490,7 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 			ref={ref}
 			className={`w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5 ${
 				isActive ? "border-2 border-black" : "border border-transparent"
-			} ${className ?? ""}`}
+			}`}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -597,7 +591,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 		B: null,
 		C: null,
 	});
-	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 	const [expandedChoices, setExpandedChoices] = useState<Record<Phase, ChoiceKey>>({
 		1: "A",
 		2: "A",
@@ -605,7 +598,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 		4: "A",
 		5: "A",
 	});
-	const [announcements, setAnnouncements] = useState<string[]>([]);
 
 	const currentRound = rounds[state.phase - 1];
 	const isComplete = state.complete;
@@ -617,44 +609,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 			block: "nearest",
 			inline: "center",
 		});
-		// Announce selection for screen readers
-		setAnnouncements((a) => [...a.slice(-2), `${currentRound.phaseLabel} — selected ${expandedChoice}`]);
-	}, [expandedChoice, state.phase, currentRound.phaseLabel]);
-
-	// Keyboard navigation: left/right to navigate options, Enter/Space to choose
-	useEffect(() => {
-		function onKey(e: KeyboardEvent) {
-			if (e.key === "ArrowRight") {
-				e.preventDefault();
-				setExpandedChoices((cur) => {
-					const curKey = cur[state.phase];
-					const order: ChoiceKey[] = ["A", "B", "C"];
-					const idx = order.indexOf(curKey);
-					const next = order[Math.min(order.length - 1, idx + 1)];
-					return { ...cur, [state.phase]: next };
-				});
-			} else if (e.key === "ArrowLeft") {
-				e.preventDefault();
-				setExpandedChoices((cur) => {
-					const curKey = cur[state.phase];
-					const order: ChoiceKey[] = ["A", "B", "C"];
-					const idx = order.indexOf(curKey);
-					const prev = order[Math.max(0, idx - 1)];
-					return { ...cur, [state.phase]: prev };
-				});
-			} else if (e.key === "Enter" || e.key === " ") {
-				// trigger choose for focused card or expandedChoice
-				const choice = currentRound.choices.find((c) => c.id === expandedChoice);
-				if (choice) {
-					e.preventDefault();
-					choosePath(choice);
-				}
-			}
-		}
-
-		document.addEventListener("keydown", onKey);
-		return () => document.removeEventListener("keydown", onKey);
-	}, [state.phase, expandedChoice, currentRound.choices]);
+	}, [expandedChoice, state.phase]);
 
 	const choosePath = (choice: Choice) => {
 		const nextTrust = Math.max(0, state.trust + (choice.delta.trust ?? 0));
@@ -665,9 +620,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 		dispatch({ type: "apply-choice", delta: choice.delta });
 		window.scrollTo({ top: 0, behavior: "smooth" });
 
-		// Announce choice applied
-		setAnnouncements((a) => [...a.slice(-3), `${choice.title} chosen. Trust ${nextTrust}, Revenue ${nextRevenue}, Population ${nextPopulation}`]);
-
 		if (state.phase === 5) {
 			router.push(
 				`/modules/${moduleSlug}/stats?trust=${nextTrust}&revenue=${nextRevenue}&population=${nextPopulation}&choiceCount=${nextChoiceCount}`,
@@ -676,12 +628,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 	};
 
 	return (
-		<main className="min-h-screen bg-white text-black relative overflow-hidden">
-			{/* Decorative/figma assets positioned behind the content */}
-			<img src={imgLoadAnimation1} alt="" aria-hidden className="pointer-events-none absolute -left-16 -top-24 w-72 opacity-80" />
-			<img src={imgVector} alt="" aria-hidden className="pointer-events-none absolute right-[-8%] top-10 w-96 opacity-30" />
-			<img src={imgFrame} alt="" aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 w-full opacity-5" />
-
+		<main className="min-h-screen bg-white text-black">
 			<section className="mx-auto flex min-h-screen w-full max-w-98.25 flex-col px-6 py-10 lg:max-w-98.25">
 				<div className="flex items-center justify-between gap-4">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
@@ -762,7 +709,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										isComplete={isComplete}
 										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
 										onChoose={() => choosePath(choice)}
-										className="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
 									/>
 								);
 							})
@@ -780,7 +726,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										isComplete={isComplete}
 										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
 										onChoose={() => choosePath(choice)}
-										className="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
 									/>
 								);
 							})}
@@ -813,24 +758,6 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 					</div>
 				) : null}
 			</section>
-
-			{/* Live region for screen reader announcements (visually hidden) */}
-			<div
-				aria-live="polite"
-				aria-atomic="true"
-				style={{
-					position: "absolute",
-					width: 1,
-					height: 1,
-					overflow: "hidden",
-					clip: "rect(0 0 0 0)",
-					whiteSpace: "nowrap",
-					border: 0,
-					padding: 0,
-				}}
-			>
-				{announcements.slice(-1)[0]}
-			</div>
 		</main>
 	);
 }
