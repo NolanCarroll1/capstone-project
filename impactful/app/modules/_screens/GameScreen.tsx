@@ -596,6 +596,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 		B: null,
 		C: null,
 	});
+	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 	const [expandedChoices, setExpandedChoices] = useState<Record<Phase, ChoiceKey>>({
 		1: "A",
 		2: "A",
@@ -603,6 +604,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 		4: "A",
 		5: "A",
 	});
+	const [announcements, setAnnouncements] = useState<string[]>([]);
 
 	const currentRound = rounds[state.phase - 1];
 	const isComplete = state.complete;
@@ -614,7 +616,44 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 			block: "nearest",
 			inline: "center",
 		});
-	}, [expandedChoice, state.phase]);
+		// Announce selection for screen readers
+		setAnnouncements((a) => [...a.slice(-2), `${currentRound.phaseLabel} — selected ${expandedChoice}`]);
+	}, [expandedChoice, state.phase, currentRound.phaseLabel]);
+
+	// Keyboard navigation: left/right to navigate options, Enter/Space to choose
+	useEffect(() => {
+		function onKey(e: KeyboardEvent) {
+			if (e.key === "ArrowRight") {
+				e.preventDefault();
+				setExpandedChoices((cur) => {
+					const curKey = cur[state.phase];
+					const order: ChoiceKey[] = ["A", "B", "C"];
+					const idx = order.indexOf(curKey);
+					const next = order[Math.min(order.length - 1, idx + 1)];
+					return { ...cur, [state.phase]: next };
+				});
+			} else if (e.key === "ArrowLeft") {
+				e.preventDefault();
+				setExpandedChoices((cur) => {
+					const curKey = cur[state.phase];
+					const order: ChoiceKey[] = ["A", "B", "C"];
+					const idx = order.indexOf(curKey);
+					const prev = order[Math.max(0, idx - 1)];
+					return { ...cur, [state.phase]: prev };
+				});
+			} else if (e.key === "Enter" || e.key === " ") {
+				// trigger choose for focused card or expandedChoice
+				const choice = currentRound.choices.find((c) => c.id === expandedChoice);
+				if (choice) {
+					e.preventDefault();
+					choosePath(choice);
+				}
+			}
+		}
+
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, [state.phase, expandedChoice, currentRound.choices]);
 
 	const choosePath = (choice: Choice) => {
 		const nextTrust = Math.max(0, state.trust + (choice.delta.trust ?? 0));
@@ -624,6 +663,9 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 
 		dispatch({ type: "apply-choice", delta: choice.delta });
 		window.scrollTo({ top: 0, behavior: "smooth" });
+
+		// Announce choice applied
+		setAnnouncements((a) => [...a.slice(-3), `${choice.title} chosen. Trust ${nextTrust}, Revenue ${nextRevenue}, Population ${nextPopulation}`]);
 
 		if (state.phase === 5) {
 			router.push(
@@ -719,6 +761,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										isComplete={isComplete}
 										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
 										onChoose={() => choosePath(choice)}
+										className="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
 									/>
 								);
 							})
@@ -736,6 +779,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										isComplete={isComplete}
 										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
 										onChoose={() => choosePath(choice)}
+										className="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
 									/>
 								);
 							})}
@@ -768,6 +812,24 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 					</div>
 				) : null}
 			</section>
+
+			{/* Live region for screen reader announcements (visually hidden) */}
+			<div
+				aria-live="polite"
+				aria-atomic="true"
+				style={{
+					position: "absolute",
+					width: 1,
+					height: 1,
+					overflow: "hidden",
+					clip: "rect(0 0 0 0)",
+					whiteSpace: "nowrap",
+					border: 0,
+					padding: 0,
+				}}
+			>
+				{announcements.slice(-1)[0]}
+			</div>
 		</main>
 	);
 }
