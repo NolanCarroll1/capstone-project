@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
 // Decorative assets exported from the Figma node
-const imgLoadAnimation1 = "http://localhost:3845/assets/a40b3b75b85cd3fb65704718346495d8a3f3abb7.png";
-const imgVector = "http://localhost:3845/assets/6f94b82ac36807c02bc700c1f9cb6d065d8b9546.svg";
+const imgLoadAnimation1 = "/assets/figma-capstone/a21a30c8-9e09-48b8-904e-4bca4aada7c1.png";
+const imgVector = "/assets/figma-capstone/40d1994e-0337-441e-82ae-86e3e5ddde09.svg";
 const imgFrame = "http://localhost:3845/assets/4b06a57733e51432639d099e3368a907a745c642.svg";
 
 type StatKey = "trust" | "revenue" | "population";
@@ -49,6 +49,7 @@ type ChoiceCardProps = {
 	isComplete: boolean;
 	onActivate: () => void;
 	onChoose: () => void;
+	className?: string;
 };
 
 type Action =
@@ -354,7 +355,7 @@ const firstRoundCardBase =
 	"w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5";
 
 const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function FirstRoundChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose },
+	{ choice, isActive, isComplete, onActivate, onChoose, className },
 	ref,
 ) {
 	const cardWidthClass = choice.id === "B" ? "lg:w-87.5" : "lg:w-88.5";
@@ -363,7 +364,7 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 	return (
 		<article
 			ref={ref}
-			className={`${firstRoundCardBase} ${cardWidthClass} ${isBordered ? "border-2 border-black" : "border border-transparent"}`}
+			className={`${firstRoundCardBase} ${cardWidthClass} ${isBordered ? "border-2 border-black" : "border border-transparent"} ${className ?? ""}`}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -481,7 +482,7 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 });
 
 const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose },
+	{ choice, isActive, isComplete, onActivate, onChoose, className },
 	ref,
 ) {
 	const statTiles = [
@@ -495,7 +496,7 @@ const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
 			ref={ref}
 			className={`w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5 ${
 				isActive ? "border-2 border-black" : "border border-transparent"
-			}`}
+			} ${className ?? ""}`}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
