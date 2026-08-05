@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 
 const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
 
+// Illustration asset exported from Figma for the scenario artwork
+const figmaIllustration = "https://www.figma.com/api/mcp/asset/1e8b3832-3267-473e-ac7c-e9e8bfe858a0.svg";
+
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
 type ChoiceKey = "A" | "B" | "C";
@@ -646,17 +649,22 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 				</div>
 
 				<div className="pt-8">
-					<div className="rounded-[14px] bg-black p-7 text-white">
-						<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#99a1af]">
-							SCENARIO
-						</p>
-						<h1 className="pt-3 font-sans text-[24px] font-bold leading-8 text-white">
-							{currentRound.scenarioTitle}
-						</h1>
-						<p className="pt-4 font-sans text-[14px] font-normal leading-[22.75px] text-[#99a1af]">
-							{currentRound.scenarioDescription}
-						</p>
+					{/* Illustration + callout layout from Figma */}
+					<div className="flex items-start gap-5">
+						<img src={figmaIllustration} alt="scenario artwork" className="h-24 w-24 flex-none rounded-lg object-contain" />
+						<div className="rounded-lg p-5" style={{ backgroundColor: 'rgba(85,137,244,0.05)' }}>
+							<p className="font-sans text-xs font-bold leading-4 tracking-widest text-slate-400">
+								SCENARIO
+							</p>
+							<h1 className="pt-3 font-sans text-2xl font-bold leading-7 text-slate-900">
+								{currentRound.scenarioTitle}
+							</h1>
+							<p className="pt-3 font-sans text-sm font-normal leading-6 text-slate-700 max-w-xl">
+								{currentRound.scenarioDescription}
+							</p>
+						</div>
 					</div>
+				</div>
 
 					<div className="mt-5 rounded-[14px] border border-[#e5e7eb] bg-white p-[20.609px]">
 						<p className="font-sans text-[14px] font-semibold leading-[22.75px] text-[#364153]">
@@ -683,7 +691,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 							</div>
 						</div>
 					</div>
-				</div>
+				
 
 				<div className="pt-8">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#99a1af]">
