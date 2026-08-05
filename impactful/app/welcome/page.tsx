@@ -38,17 +38,17 @@ export default function WelcomePage() {
 	const baseHeight = isTabletOrDesktop ? DESKTOP_BASE_HEIGHT : MOBILE_BASE_HEIGHT;
 	const widthScale = (viewport.width - EDGE_PADDING * 2) / baseWidth;
 	const heightScale = (viewport.height - EDGE_PADDING * 2) / baseHeight;
-	const scale = isTabletOrDesktop ? Math.min(widthScale, heightScale) : Math.max(widthScale, heightScale);
+	const scale = Math.min(widthScale, heightScale);
 
 	return (
 			<main className="fixed inset-0 overflow-hidden bg-black text-white">
 				<div className="relative min-h-full w-full overflow-hidden" style={{ padding: isTabletOrDesktop ? EDGE_PADDING : 0 }}>
 					<div
-						className={isTabletOrDesktop ? "absolute left-1/2 top-1/2 origin-center" : "absolute left-1/2 top-0 origin-top"}
+						className="absolute left-1/2 top-1/2 origin-center"
 						style={{
 							width: `${baseWidth}px`,
 							height: `${baseHeight}px`,
-							transform: isTabletOrDesktop ? `translate(-50%, -50%) scale(${scale})` : "translateX(-50%)",
+							transform: `translate(-50%, -50%) scale(${scale})`,
 						}}
 					>
 						{isTabletOrDesktop ? (
