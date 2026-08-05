@@ -4,6 +4,10 @@
 			"url": "https://mcp.figma.com/mcp",
 			"type": "http"
 		},
+		"my-mcp-server-7970d02a": {
+			"url": "http://127.0.0.1:3845/mcp",
+			"type": "http"
+		}
 	},
 	"inputs": []
 }

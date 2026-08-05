@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { authenticateAdmin, registerAdminFromInvite } from "@/lib/auth/adminInvites";
+import { authenticateAdmin, getAdminAccountName, registerAdminFromInvite } from "@/lib/auth/adminInvites";
 import { getActiveSession, getPostLoginHref, setActiveSession } from "@/lib/auth/session";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -15,6 +15,10 @@ const DEMO_PASSWORD = "password";
 
 function normalize(value: string) {
 	return value.trim().toLowerCase();
+}
+
+function normalizeName(value: string) {
+	return value.trim().replace(/\s+/g, " ");
 }
 
 function AuthTabs({ mode, onModeChange }: { mode: AuthMode; onModeChange: (mode: AuthMode) => void }) {
@@ -106,10 +110,14 @@ export default function LoginPage() {
 	const [adminPassword, setAdminPassword] = useState("");
 	const [adminInviteCode, setAdminInviteCode] = useState("");
 	const [adminConfirmPassword, setAdminConfirmPassword] = useState("");
+	const [adminFullName, setAdminFullName] = useState("");
 	const [adminError, setAdminError] = useState("");
 	const [adminNotice, setAdminNotice] = useState("");
+
 	const isSignUp = mode === "sign-up";
 	const isAdminPanel = panel === "admin";
+	const normalizedUserName = normalizeName(fullName);
+	const normalizedAdminName = normalizeName(adminFullName);
 
 	useEffect(() => {
 		const session = getActiveSession();
@@ -125,7 +133,7 @@ export default function LoginPage() {
 		}
 
 		setUserError("");
-		setActiveSession("user");
+		setActiveSession("user", email, normalizedUserName || "User Impactful");
 		router.push("/dashboard");
 	};
 
@@ -139,8 +147,14 @@ export default function LoginPage() {
 
 			setAdminError("");
 			setAdminNotice("");
-			setActiveSession("admin");
+			setActiveSession("admin", adminEmail, getAdminAccountName(adminEmail));
 			router.push("/admin");
+			return;
+		}
+
+		if (!normalizedAdminName || normalizedAdminName.split(" ").length < 2) {
+			setAdminNotice("");
+			setAdminError("Enter first and last name.");
 			return;
 		}
 
@@ -154,6 +168,7 @@ export default function LoginPage() {
 			email: adminEmail,
 			code: adminInviteCode,
 			password: adminPassword,
+			fullName: normalizedAdminName,
 		});
 
 		if (!result.ok) {
@@ -166,7 +181,7 @@ export default function LoginPage() {
 		setAdminNotice(result.message);
 		setAdminInviteCode("");
 		setAdminConfirmPassword("");
-		setActiveSession("admin");
+		setActiveSession("admin", adminEmail, normalizedAdminName);
 		router.push("/admin");
 	};
 
@@ -183,7 +198,13 @@ export default function LoginPage() {
 							{isAdminPanel ? "ADMIN ACCESS" : "WELCOME"}
 						</p>
 						<h2 className="mt-3 font-sans text-[30px] font-bold leading-[1.2] tracking-[-0.02em] text-black lg:max-w-[10.5em]">
-							{isAdminPanel ? (adminMode === "sign-in" ? "Sign in to admin console" : "Create your admin account") : isSignUp ? "Create your account" : "Sign in to your account"}
+							{isAdminPanel
+								? adminMode === "sign-in"
+									? "Sign in to admin console"
+									: "Create your admin account"
+								: isSignUp
+									? "Create your account"
+									: "Sign in to your account"}
 						</h2>
 
 						<div className="mt-3 flex items-center justify-between rounded-[10px] border border-[#e5e7eb] bg-white p-1">
@@ -214,7 +235,9 @@ export default function LoginPage() {
 								</div>
 
 								<div className="mt-6 space-y-4">
-									{isSignUp ? <InputField label="Full Name" placeholder="Jane Smith" value={fullName} onChange={setFullName} /> : null}
+									{isSignUp ? (
+										<InputField label="Full Name" placeholder="Jane Smith" value={fullName} onChange={setFullName} />
+									) : null}
 									<InputField label="Email" placeholder="you@uvu.edu" value={email} onChange={setEmail} />
 									<InputField label="Password" placeholder="••••••••" type="password" value={password} onChange={setPassword} />
 								</div>
@@ -268,10 +291,17 @@ export default function LoginPage() {
 								</div>
 
 								<div className="mt-6 space-y-4">
+									{adminMode === "sign-up" ? (
+										<InputField label="Full Name" placeholder="Jane Smith" value={adminFullName} onChange={setAdminFullName} />
+									) : null}
 									<InputField label="Admin Email" placeholder="admin@impactful.org" value={adminEmail} onChange={setAdminEmail} />
-									{adminMode === "sign-up" ? <InputField label="Invite Code" placeholder="AB12CD34" value={adminInviteCode} onChange={setAdminInviteCode} /> : null}
+									{adminMode === "sign-up" ? (
+										<InputField label="Invite Code" placeholder="AB12CD34" value={adminInviteCode} onChange={setAdminInviteCode} />
+									) : null}
 									<InputField label="Password" placeholder="••••••••" type="password" value={adminPassword} onChange={setAdminPassword} />
-									{adminMode === "sign-up" ? <InputField label="Confirm Password" placeholder="••••••••" type="password" value={adminConfirmPassword} onChange={setAdminConfirmPassword} /> : null}
+									{adminMode === "sign-up" ? (
+										<InputField label="Confirm Password" placeholder="••••••••" type="password" value={adminConfirmPassword} onChange={setAdminConfirmPassword} />
+									) : null}
 								</div>
 
 								{adminMode === "sign-up" ? (
@@ -301,7 +331,6 @@ export default function LoginPage() {
 								</p>
 							</>
 						)}
-
 					</div>
 				</div>
 			</section>

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Leaf } from "lucide-react";
 import { LogoutButton } from "../_components/LogoutButton";
 import { RequireSession } from "../_components/RequireSession";
+import { AdminIdentityBadge } from "./_components/AdminIdentityBadge";
 import { AdminTopNav } from "./_components/AdminTopNav";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 							className="flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f6a20a]"
 						>
 							<span className="relative inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0f5047] text-[#f6ffe2] shadow-[0_8px_20px_-12px_rgba(15,80,71,0.6)]">
-								<Leaf className="h-4 w-4 text-[#4ca86c]" aria-hidden="true" />
+								<AdminIdentityBadge />
 								<span aria-hidden="true" className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#f6a20a]" />
 							</span>
 							<span className="flex min-w-0 flex-col leading-none">

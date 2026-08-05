@@ -4,6 +4,7 @@ const INVITES_EVENT = "impactful-admin-invites-change";
 
 const DEFAULT_ADMIN_EMAIL = "admin@impactful.org";
 const DEFAULT_ADMIN_PASSWORD = "password";
+const DEFAULT_ADMIN_NAME = "Admin Impactful";
 
 export type AdminInviteRecord = {
 	email: string;
@@ -15,6 +16,7 @@ export type AdminInviteRecord = {
 type AdminAccountRecord = {
 	email: string;
 	password: string;
+	fullName?: string;
 	createdAt: string;
 };
 
@@ -52,6 +54,15 @@ function normalizeEmail(email: string) {
 
 function isValidEmail(email: string) {
 	return /^\S+@\S+\.\S+$/.test(email);
+}
+
+function normalizeFullName(value: string | undefined) {
+	if (!value) {
+		return undefined;
+	}
+
+	const trimmed = value.trim().replace(/\s+/g, " ");
+	return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function generateInviteCode() {
@@ -98,12 +109,12 @@ function readStoredInvites(): AdminInviteRecord[] {
 
 function readStoredAccounts(): AdminAccountRecord[] {
 	if (!canUseStorage()) {
-		return [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
+		return [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, fullName: DEFAULT_ADMIN_NAME, createdAt: new Date().toISOString() }];
 	}
 
 	const raw = window.localStorage.getItem(ADMIN_ACCOUNTS_KEY);
 	if (!raw) {
-		const seeded = [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
+		const seeded = [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, fullName: DEFAULT_ADMIN_NAME, createdAt: new Date().toISOString() }];
 		window.localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(seeded));
 		return seeded;
 	}
@@ -118,18 +129,32 @@ function readStoredAccounts(): AdminAccountRecord[] {
 			.map((record) => ({
 				email: normalizeEmail(record.email ?? ""),
 				password: String(record.password ?? ""),
+				fullName: normalizeFullName(record.fullName),
 				createdAt: record.createdAt ?? new Date().toISOString(),
 			}))
 			.filter((record) => Boolean(record.email && record.password));
 
 		if (!normalized.some((record) => record.email === DEFAULT_ADMIN_EMAIL)) {
-			normalized.unshift({ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, createdAt: new Date().toISOString() });
+			normalized.unshift({ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, fullName: DEFAULT_ADMIN_NAME, createdAt: new Date().toISOString() });
 			window.localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(normalized));
 		}
 
-		return normalized;
+		let updatedDefaultName = false;
+		const withDefaultName = normalized.map((record) => {
+			if (record.email === DEFAULT_ADMIN_EMAIL && !record.fullName) {
+				updatedDefaultName = true;
+				return { ...record, fullName: DEFAULT_ADMIN_NAME };
+			}
+
+			return record;
+		});
+		if (updatedDefaultName) {
+			window.localStorage.setItem(ADMIN_ACCOUNTS_KEY, JSON.stringify(withDefaultName));
+		}
+
+		return withDefaultName;
 	} catch {
-		return [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, createdAt: new Date().toISOString() }];
+		return [{ email: DEFAULT_ADMIN_EMAIL, password: DEFAULT_ADMIN_PASSWORD, fullName: DEFAULT_ADMIN_NAME, createdAt: new Date().toISOString() }];
 	}
 }
 
@@ -255,17 +280,42 @@ export function authenticateAdmin(email: string, password: string) {
 	return accounts.some((account) => account.email === normalized && account.password === password);
 }
 
+export function getAdminAccountName(email: string) {
+	const normalized = normalizeEmail(email);
+	if (!normalized) {
+		return undefined;
+	}
+
+	const account = readStoredAccounts().find((entry) => entry.email === normalized);
+	if (!account) {
+		return undefined;
+	}
+
+	if (account.fullName) {
+		return account.fullName;
+	}
+
+	if (account.email === DEFAULT_ADMIN_EMAIL) {
+		return DEFAULT_ADMIN_NAME;
+	}
+
+	return undefined;
+}
+
 export function registerAdminFromInvite({
 	email,
 	code,
 	password,
+	fullName,
 }: {
 	email: string;
 	code: string;
 	password: string;
+	fullName?: string;
 }) {
 	const normalized = normalizeEmail(email);
 	const normalizedCode = code.trim().toUpperCase();
+	const normalizedName = normalizeFullName(fullName);
 
 	if (!normalized || !normalizedCode || !password) {
 		return { ok: false as const, message: "Email, invite code, and password are required." };
@@ -292,7 +342,7 @@ export function registerAdminFromInvite({
 	}
 
 	const createdAt = new Date().toISOString();
-	writeStoredAccounts([{ email: normalized, password, createdAt }, ...accounts]);
+	writeStoredAccounts([{ email: normalized, password, fullName: normalizedName, createdAt }, ...accounts]);
 	writeStoredInvites(
 		invites.map((entry) =>
 			entry.email === normalized && !entry.claimedAt
