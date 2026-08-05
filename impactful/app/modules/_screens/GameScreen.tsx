@@ -349,19 +349,18 @@ function FigmaButton({
 }
 
 const firstRoundCardBase =
-	"w-85.5 shrink-0 snap-center rounded-3xl bg-[#121212] p-6 text-white shadow-none transition-colors duration-200 lg:w-88.5";
+	"w-85.5 shrink-0 snap-center rounded-2xl bg-white p-6 text-[#0f1724] shadow-sm transition-colors duration-200 lg:w-88.5";
 
 const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function FirstRoundChoiceCard(
 	{ choice, isActive, isComplete, onActivate, onChoose },
 	ref,
 ) {
 	const cardWidthClass = choice.id === "B" ? "lg:w-87.5" : "lg:w-88.5";
-	const isBordered = isActive && choice.id !== "B";
 
 	return (
 		<article
 			ref={ref}
-			className={`${firstRoundCardBase} ${cardWidthClass} ${isBordered ? "border-2 border-black" : "border border-transparent"}`}
+			className={`${firstRoundCardBase} ${cardWidthClass} border border-[#e6e9ee]`}
 			onClick={onActivate}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -382,96 +381,44 @@ const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function F
 					onActivate();
 				}}
 			>
-				<p className="font-mono text-[22px] font-bold leading-none text-white">{choice.name}</p>
+				<p className="font-mono text-xl font-bold leading-none">{choice.name}</p>
 				<FigmaChevron expanded={isActive} />
 			</button>
 
-			<div className="flex flex-col gap-1">
-				<h2 className="font-sans text-[17px] font-bold leading-none tracking-normal text-white">
-					{choice.title}
-				</h2>
-				<p className="max-w-75.5 font-sans text-[17px] font-normal leading-none tracking-normal text-[#9aa4b2]">
-					{choice.description}
-				</p>
+			<div className="flex flex-col gap-2 mt-3">
+				<h2 className="font-sans text-lg font-bold leading-none tracking-normal text-slate-900">{choice.title}</h2>
+				<p className="max-w-md font-sans text-sm font-normal leading-6 text-slate-600">{choice.description}</p>
 			</div>
 
 			{isActive ? (
-				choice.id === "A" ? (
-					<div className="rounded-2xl border-2 border-[#6b7280] bg-white p-3 text-[#121212]">
-						<div className="flex flex-col gap-3.5">
-							<div className="flex flex-col gap-1">
-								<p className="font-sans text-[15px] font-bold leading-none text-[#121212]">We use cookies</p>
-								<p className="font-sans text-[13px] font-normal leading-none text-[#6b7280]">
-									We collect browsing data to improve your experience. You choose what to share.
-								</p>
-							</div>
-							<div className="flex gap-4">
-								<FigmaButton
-									ariaLabel="Accept"
-									className="flex h-8 flex-1 items-center justify-center rounded-full bg-[#0c3310] px-4 font-sans text-[14px] font-bold leading-none text-[#85d79a]"
-								>
-									Accept
-								</FigmaButton>
-								<FigmaButton
-									ariaLabel="Decline"
-									className="flex h-8 flex-1 items-center justify-center rounded-full bg-[#4a1100] px-4 font-sans text-[14px] font-bold leading-none text-[#ff957c]"
-								>
-									Decline
-								</FigmaButton>
-							</div>
+				<div className="mt-4 rounded-lg border border-[#eef2f6] bg-[#f7f8fa] p-3 text-[#121212]">
+					{/* Preview area */}
+					<div className="flex flex-col gap-3">
+						<div>
+							<p className="font-sans text-sm font-semibold">{choice.id === "A" ? "We use cookies" : "Preview"}</p>
+							<p className="mt-1 text-sm text-slate-600">{choice.id === "A" ? "We collect browsing data to improve your experience. You choose what to share." : choice.preview}</p>
+						</div>
+						<div className="flex gap-3">
+							{choice.id === "A" ? (
+								<>
+									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded-full bg-green-100 text-green-800 font-semibold">Accept</FigmaButton>
+									<FigmaButton ariaLabel="Decline" className="flex h-9 flex-1 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-semibold">Decline</FigmaButton>
+								</>
+							) : choice.id === "B" ? (
+								<>
+									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded-full bg-green-100 text-green-800 font-semibold">Accept</FigmaButton>
+									<FigmaButton ariaLabel="Learn More" className="flex h-9 flex-1 items-center justify-center rounded-full bg-sky-900 text-white font-semibold">Learn More</FigmaButton>
+								</>
+							) : (
+								<FigmaButton ariaLabel="Accept All" className="flex h-9 w-full items-center justify-center rounded-full bg-sky-900 text-white font-semibold">Accept All</FigmaButton>
+							)}
 						</div>
 					</div>
-				) : choice.id === "B" ? (
-					<div className="rounded-2xl border-2 border-[#7c7c7c] bg-white p-3 text-[#121212]">
-						<div className="flex flex-col gap-4">
-							<div className="flex flex-col gap-1">
-								<p className="font-sans text-[15px] font-bold leading-none text-[#121212]">Preview</p>
-								<p className="font-sans text-[13px] font-normal leading-none text-[#323232]">
-									We use cookies to improve your experience.
-								</p>
-							</div>
-							<div className="flex gap-4">
-								<FigmaButton
-									ariaLabel="Accept"
-									className="flex h-8 flex-1 items-center justify-center rounded-full bg-[#0c3310] px-4 font-sans text-[14px] font-bold leading-none text-[#85d79a]"
-								>
-									Accept
-								</FigmaButton>
-								<FigmaButton
-									ariaLabel="Learn More"
-									className="flex h-8 flex-1 items-center justify-center rounded-full bg-[#003c54] px-4 font-sans text-[14px] font-bold leading-none text-[#b8e0ee]"
-								>
-									Learn More
-								</FigmaButton>
-							</div>
-						</div>
-					</div>
-				) : (
-					<div className="rounded-2xl border-[0.665px] border-[#6b7280] bg-white p-4 text-[#121212]">
-						<div className="flex flex-col gap-4">
-							<div className="flex flex-col gap-1">
-								<p className="font-sans text-[15px] font-bold leading-none text-[#9aa4b2]">Cookie Policy</p>
-								<p className="text-center font-mono text-[12px] font-normal not-italic leading-none text-[#323232]">
-									settings — privacy
-								</p>
-							</div>
-							<FigmaButton
-								ariaLabel="Accept All"
-								className="flex h-8 w-full items-center justify-center rounded-full bg-[#003c54] px-4 font-sans text-[14px] font-bold leading-none text-[#b8e0ee]"
-							>
-								Accept All
-							</FigmaButton>
-						</div>
-					</div>
-				)
+				</div>
 			) : null}
 
-			<FigmaButton
-				ariaLabel="Choose This Path"
-				className="flex h-10.75 w-full items-center justify-center rounded-full bg-[#ff8d00] px-4 font-sans text-[16px] font-bold leading-none text-white"
-				onClick={onChoose}
-				disabled={isComplete}
-			>
+			{/* Small inline choose button kept for accessibility */}
+			<FigmaButton ariaLabel="Choose This Path" className="mt-4 flex h-11 w-full items-center justify-center rounded-full border border-[#ffd7a8] bg-orange-500 text-white font-bold" onClick={onChoose} disabled={isComplete}>
 				Choose This Path
 			</FigmaButton>
 		</article>
@@ -689,10 +636,8 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 								<p className="font-sans text-[14px] font-normal leading-5 text-[#6a7282]">Population</p>
 								<p className="font-sans text-[14px] font-bold leading-5 text-black">{state.population}</p>
 							</div>
-						</div>
 					</div>
-				
-
+				</div>
 				<div className="pt-8">
 					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#99a1af]">
 						CHOOSE ONE PATH
@@ -719,7 +664,7 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										onChoose={() => choosePath(choice)}
 									/>
 								);
-							})
+								})
 							: currentRound.choices.map((choice) => {
 								const isActive = choice.id === expandedChoice;
 
@@ -736,24 +681,51 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 										onChoose={() => choosePath(choice)}
 									/>
 								);
-							})}
+								})}
 						</div>
 					</div>
-				</div>
 
-				<div className="flex items-center justify-between gap-4 pt-2">
-					<p className="font-sans text-[12px] text-[#99a1af]">
-						Choices made: {state.choiceCount} / 5
-					</p>
+					{/* Selection dots and global CTA to mirror the Figma layout */}
+					<div className="mt-4 flex flex-col items-center gap-4">
+						<div className="flex items-center gap-3">
+							{currentRound.choices.map((c) => (
+								<button
+									key={c.id}
+									type="button"
+									onClick={() => setExpandedChoices((current) => ({ ...current, [state.phase]: c.id }))}
+									className={`h-9 w-9 rounded-full flex items-center justify-center font-mono font-bold ${c.id === expandedChoice ? "bg-slate-800 text-white" : "bg-slate-200 text-slate-500"}`}>
+									{c.id}
+								</button>
+							))}
+						</div>
 
-					<button
-						type="button"
-						onClick={() => dispatch({ type: "reset" })}
-						className="rounded-full border border-black px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-black"
-					>
-						RESET
-					</button>
+						<button
+							type="button"
+							onClick={() => {
+								const choice = currentRound.choices.find((item) => item.id === expandedChoice);
+								if (choice && !isComplete) choosePath(choice);
+							}}
+							className="mt-2 w-64 rounded-full bg-orange-400 px-6 py-3 text-center font-sans font-bold text-white shadow-md"
+							disabled={isComplete}
+						>
+							Choose This Path
+						</button>
+					</div>
 				</div>
+		</div>
+		<div className="flex items-center justify-between gap-4 pt-2">
+				<p className="font-sans text-[12px] text-[#99a1af]">
+					Choices made: {state.choiceCount} / 5
+				</p>
+
+				<button
+					type="button"
+					onClick={() => dispatch({ type: "reset" })}
+					className="rounded-full border border-black px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-black"
+				>
+					RESET
+				</button>
+		</div>
 
 				{isComplete ? (
 					<div className="mt-4 rounded-[14px] border border-black bg-black px-4 py-4 text-white">
