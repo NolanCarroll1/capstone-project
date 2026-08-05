@@ -1,4 +1,4 @@
 export const adminAssets = {
-	mascot: "/admin/mascot.png",
+	mascot: "/assets/welcome-logo-node-1083-510.png",
 	villageBanner: "/admin/village-banner.png",
 } as const;

@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 import { adminAssets } from "../_assets";
 import { cn } from "@/lib/utils";
 
@@ -15,15 +13,25 @@ export function Mascot({
 	alt?: string;
 }) {
 	return (
-		<Image
-			src={adminAssets.mascot}
-			alt={alt}
-			width={size}
-			height={size}
-			unoptimized
-			style={{ width: size, height: size, imageRendering: "pixelated" }}
-			className={cn("animate-idle-bob select-none drop-shadow-sm", className)}
-		/>
+		<div
+			className={cn("relative overflow-hidden animate-idle-bob select-none drop-shadow-sm", className)}
+			style={{ width: size, height: size }}
+			aria-hidden={alt === "" ? true : undefined}
+		>
+			<img
+				src={adminAssets.mascot}
+				alt={alt}
+				className="pointer-events-none absolute max-w-none"
+				style={{
+					height: "441.38%",
+					width: "711.11%",
+					left: "-19.91%",
+					top: "-100%",
+					imageRendering: "pixelated",
+				}}
+				draggable={false}
+			/>
+		</div>
 	);
 }
 
