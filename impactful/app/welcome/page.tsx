@@ -3,35 +3,42 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const BASE_WIDTH = 393;
-const BASE_HEIGHT = 909;
+const MOBILE_BASE_WIDTH = 393;
+const MOBILE_BASE_HEIGHT = 909;
+const DESKTOP_BASE_WIDTH = 1253;
+const DESKTOP_BASE_HEIGHT = 866;
 const EDGE_PADDING = 16;
+const TABLET_BREAKPOINT = 768;
 
-function useViewportScale() {
-	const [scale, setScale] = useState(1);
+function useViewport() {
+	const [viewport, setViewport] = useState({ width: MOBILE_BASE_WIDTH, height: MOBILE_BASE_HEIGHT });
 
 	useEffect(() => {
-		const updateScale = () => {
-			const widthScale = (window.innerWidth - EDGE_PADDING * 2) / BASE_WIDTH;
-			const heightScale = (window.innerHeight - EDGE_PADDING * 2) / BASE_HEIGHT;
-			setScale(Math.min(widthScale, heightScale));
+		const updateViewport = () => {
+			setViewport({ width: window.innerWidth, height: window.innerHeight });
 		};
 
-		updateScale();
-		window.addEventListener("resize", updateScale);
-		window.addEventListener("orientationchange", updateScale);
+		updateViewport();
+		window.addEventListener("resize", updateViewport);
+		window.addEventListener("orientationchange", updateViewport);
 
 		return () => {
-			window.removeEventListener("resize", updateScale);
-			window.removeEventListener("orientationchange", updateScale);
+			window.removeEventListener("resize", updateViewport);
+			window.removeEventListener("orientationchange", updateViewport);
 		};
 	}, []);
 
-	return scale;
+	return viewport;
 }
 
 export default function WelcomePage() {
-	const scale = useViewportScale();
+	const viewport = useViewport();
+	const isTabletOrDesktop = viewport.width >= TABLET_BREAKPOINT;
+	const baseWidth = isTabletOrDesktop ? DESKTOP_BASE_WIDTH : MOBILE_BASE_WIDTH;
+	const baseHeight = isTabletOrDesktop ? DESKTOP_BASE_HEIGHT : MOBILE_BASE_HEIGHT;
+	const widthScale = (viewport.width - EDGE_PADDING * 2) / baseWidth;
+	const heightScale = (viewport.height - EDGE_PADDING * 2) / baseHeight;
+	const scale = Math.min(widthScale, heightScale);
 
 	return (
 			<main className="fixed inset-0 overflow-hidden bg-black text-white">
@@ -39,12 +46,31 @@ export default function WelcomePage() {
 					<div
 						className="absolute left-1/2 top-1/2 origin-center"
 						style={{
-							width: `${BASE_WIDTH}px`,
-							height: `${BASE_HEIGHT}px`,
+							width: `${baseWidth}px`,
+							height: `${baseHeight}px`,
 							transform: `translate(-50%, -50%) scale(${scale})`,
 						}}
 					>
-						<section className="relative overflow-hidden bg-black" style={{ height: BASE_HEIGHT, width: BASE_WIDTH }}>
+						{isTabletOrDesktop ? (
+							<section className="relative overflow-hidden bg-black" style={{ height: DESKTOP_BASE_HEIGHT, width: DESKTOP_BASE_WIDTH }}>
+								<img
+									src="/assets/welcome-desktop-node-638-357.png"
+									alt="Impactful welcome screen"
+									className="pointer-events-none absolute inset-0 h-full w-full select-none"
+									draggable={false}
+								/>
+
+								<Link
+									href="/login"
+									aria-label="Start here"
+									className="absolute"
+									style={{ left: 510, top: 587, width: 246, height: 56 }}
+								>
+									<span className="sr-only">[ STARTS HERE ]</span>
+								</Link>
+							</section>
+						) : (
+							<section className="relative overflow-hidden bg-black" style={{ height: MOBILE_BASE_HEIGHT, width: MOBILE_BASE_WIDTH }}>
 					<div className="absolute inset-0 bg-black" />
 
 					<img
@@ -82,30 +108,43 @@ export default function WelcomePage() {
 						style={{ left: 52, top: 251, height: 370, width: 288, borderRadius: 15 }}
 					/>
 
-					<div
-						className="pointer-events-none absolute rounded-full bg-[#d9d9d9]"
-						style={{ left: 141, top: 282, height: 110, width: 111 }}
-					/>
-
 					<div className="absolute z-10 text-center" style={{ left: 69, top: 411, width: 254 }}>
-						<h1 className="whitespace-nowrap font-sans text-[48px] font-semibold leading-none tracking-tighter text-white">
+						<h1 className="whitespace-nowrap font-sans text-[48px] font-semibold leading-none tracking-normal text-white">
 							IMPACTFUL
 						</h1>
 					</div>
 
-					<div className="absolute left-1/2 z-10 -translate-x-1/2 text-center" style={{ top: 474 }}>
-						<p className="whitespace-nowrap font-sans text-[36px] font-bold tracking-tight text-[#005b80]" style={{ lineHeight: "63px" }}>
+					<div className="absolute left-1/2 z-10 -translate-x-1/2 text-center" style={{ top: 499, width: 121 }}>
+						<p
+							className="whitespace-nowrap font-mono text-[20px] font-normal italic tracking-normal text-[#4ea6c5]"
+							style={{ lineHeight: "normal" }}
+						>
 							Impact
 						</p>
+					</div>
+
+					<div className="absolute z-10" style={{ left: 71, top: 533, width: 246, height: 56 }}>
 						<Link
 							href="/login"
-							className="-mt-1 inline-block whitespace-nowrap font-sans text-[36px] font-bold tracking-tight text-[#ff8d00]"
-							style={{ lineHeight: "63px" }}
+							className="absolute left-0 top-0 flex h-[56px] w-[247px] items-center justify-center bg-[#ff9311] font-mono text-[16px] font-bold tracking-[1.6px] text-white transition-colors hover:bg-[#ffa733]"
 						>
-							Starts Here →
+							[ STARTS HERE ]
 						</Link>
 					</div>
+
+					<div className="absolute z-10 h-[141px] w-[131px]" style={{ left: 129, top: 266 }}>
+						<div className="pointer-events-none absolute inset-0 overflow-hidden">
+							<img
+								src="/assets/welcome-logo-node-1083-510.png"
+								alt=""
+								className="pointer-events-none absolute max-w-none select-none"
+								style={{ height: "441.38%", width: "711.11%", left: "-19.91%", top: "-100%" }}
+								draggable={false}
+							/>
+						</div>
+					</div>
 						</section>
+						)}
 					</div>
 				</div>
 			</main>

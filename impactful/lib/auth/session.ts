@@ -10,7 +10,27 @@ export type SessionRole = "user" | "admin";
 export type SessionData = {
 	status: "active";
 	role: SessionRole;
+	email?: string;
+	name?: string;
 };
+
+function normalizeEmail(email: string | undefined) {
+	if (!email) {
+		return undefined;
+	}
+
+	const trimmed = email.trim().toLowerCase();
+	return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeName(name: string | undefined) {
+	if (!name) {
+		return undefined;
+	}
+
+	const normalized = name.trim().replace(/\s+/g, " ");
+	return normalized.length > 0 ? normalized : undefined;
+}
 
 function canUseStorage() {
 	return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -41,7 +61,12 @@ export function getActiveSession(): SessionData | null {
 	try {
 		const parsed = JSON.parse(raw) as Partial<SessionData>;
 		if (parsed.status === "active" && (parsed.role === "user" || parsed.role === "admin")) {
-			lastSessionSnapshot = parsed.role === "user" ? LEGACY_USER_SESSION : { status: "active", role: "admin" };
+			lastSessionSnapshot = {
+				status: "active",
+				role: parsed.role,
+				email: normalizeEmail(parsed.email),
+				name: normalizeName(parsed.name),
+			};
 			return lastSessionSnapshot;
 		}
 	} catch {
@@ -57,14 +82,20 @@ export function hasActiveSession() {
 	return getActiveSession() !== null;
 }
 
-export function setActiveSession(role: SessionRole = "user") {
+export function setActiveSession(role: SessionRole = "user", email?: string, name?: string) {
 	if (!canUseStorage()) {
 		return;
 	}
 
-	const nextRaw = JSON.stringify({ status: "active", role } satisfies SessionData);
+	const nextSession: SessionData = {
+		status: "active",
+		role,
+		email: normalizeEmail(email),
+		name: normalizeName(name),
+	};
+	const nextRaw = JSON.stringify(nextSession);
 	lastSessionRaw = nextRaw;
-	lastSessionSnapshot = role === "user" ? LEGACY_USER_SESSION : { status: "active", role: "admin" };
+	lastSessionSnapshot = nextSession;
 	window.localStorage.setItem(SESSION_KEY, nextRaw);
 	window.dispatchEvent(new Event(SESSION_EVENT));
 }
