@@ -1,23 +1,35 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
-import { MobileBottomNav } from "../_components/MobileBottomNav";
+import { ChevronRight } from "lucide-react";
+import { useSyncExternalStore } from "react";
+
 import { LogoutButton } from "../_components/LogoutButton";
+import { MobileBottomNav } from "../_components/MobileBottomNav";
 import { RequireSession } from "../_components/RequireSession";
+import { FullTopMenu } from "../modules/_components/FullTopMenu";
 import { getSessionSnapshot, subscribeToSession } from "@/lib/auth/session";
 
 type ProfileAction = {
-	icon: string;
+	iconSrc: string;
 	label: string;
+	description: string;
 	href?: string;
 };
 
 const profileActions: ProfileAction[] = [
-	{ icon: "★", label: "My Badges" },
-	{ icon: "■", label: "Security Settings" },
-	{ icon: "◆", label: "Notifications" },
-	{ icon: "▤", label: "Module History", href: "/modules/deceptive-design" },
+	{
+		iconSrc: "/assets/figma-capstone/profile/security-settings.png",
+		label: "Security Settings",
+		description: "Password & 2FA",
+	},
+	{
+		iconSrc: "/assets/figma-capstone/profile/notifications.png",
+		label: "Notifications",
+		description: "Manage alerts",
+		href: "/profile/notifications",
+	},
 ];
 
 function toTitleCase(value: string) {
@@ -50,21 +62,16 @@ function getEmailChunks(email?: string) {
 		.map((chunk) => toTitleCase(chunk));
 }
 
-function getDisplayName(name?: string, email?: string) {
+function getDisplayName(name?: string) {
 	const nameParts = getNameParts(name);
 	if (nameParts.length > 0) {
 		return nameParts.join(" ");
 	}
 
-	const emailChunks = getEmailChunks(email);
-	if (emailChunks.length > 0) {
-		return emailChunks.join(" ");
-	}
-
-	return "Learner";
+	return "Impactful User";
 }
 
-function getDisplayInitials(name?: string, email?: string, role?: "user" | "admin") {
+function getDisplayInitials(name?: string, email?: string) {
 	const nameParts = getNameParts(name);
 	if (nameParts.length >= 2) {
 		return `${nameParts[0][0] ?? ""}${nameParts[nameParts.length - 1][0] ?? ""}`.toUpperCase();
@@ -81,23 +88,28 @@ function getDisplayInitials(name?: string, email?: string, role?: "user" | "admi
 		return emailChunks[0].slice(0, 2).toUpperCase();
 	}
 
-	return role === "admin" ? "AD" : "US";
+	return "IU";
 }
 
 function ActionRow({ action }: { action: ProfileAction }) {
 	const content = (
 		<>
-			<div className="flex items-center gap-3">
-				<span className="font-sans text-[16px] leading-none text-black">{action.icon}</span>
-				<span className="font-sans text-[14px] font-medium text-black">{action.label}</span>
+			<div className="flex items-center gap-4">
+				<div className="relative h-12 w-12 shrink-0">
+					<Image src={action.iconSrc} alt="" fill sizes="48px" className="object-contain" />
+				</div>
+				<div>
+					<p className="font-sans text-[15px] font-bold leading-[1.5] text-black">{action.label}</p>
+					<p className="mt-0.5 font-sans text-[13px] font-medium leading-[1.5] text-[#99a1af]">{action.description}</p>
+				</div>
 			</div>
-			<span className="font-sans text-[18px] leading-none text-[#d1d5dc]">›</span>
+			<ChevronRight className="h-4 w-4 text-[#c5cbd7]" />
 		</>
 	);
 
 	if (action.href) {
 		return (
-			<Link href={action.href} className="flex h-14 items-center justify-between px-5">
+			<Link href={action.href} className="flex w-full items-center justify-between px-[22px] py-[18px]">
 				{content}
 			</Link>
 		);
@@ -106,7 +118,7 @@ function ActionRow({ action }: { action: ProfileAction }) {
 	return (
 		<button
 			type="button"
-			className="flex h-14 w-full items-center justify-between px-5 text-left"
+			className="flex w-full items-center justify-between px-[22px] py-[18px] text-left"
 			aria-label={`${action.label} (coming soon)`}
 		>
 			{content}
@@ -115,88 +127,66 @@ function ActionRow({ action }: { action: ProfileAction }) {
 }
 
 export default function ProfilePage() {
-	const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
-	const displayName = getDisplayName(session?.name, session?.email);
+	const displayName = getDisplayName(session?.name);
 	const displayEmail = session?.email ?? "No email";
-	const roleLabel = session?.role === "admin" ? "Admin" : "User";
-	const initials = getDisplayInitials(session?.name, session?.email, session?.role);
+	const initials = getDisplayInitials(session?.name, session?.email);
 
 	return (
 		<RequireSession>
-			<main className="min-h-dvh bg-white pb-[calc(96px+env(safe-area-inset-bottom))] text-black sm:flex sm:justify-center">
-				<section className="mx-auto w-full max-w-107.5">
-				<header className="flex items-center justify-between px-[clamp(14px,4.5vw,20px)] pb-[clamp(10px,2.8vw,16px)] pt-[calc(16px+env(safe-area-inset-top))]">
-					<Link href="/dashboard" className="font-mono text-[clamp(12px,3.2vw,14px)] text-[#6a7282]">
-						← BACK
-					</Link>
-					<p className="font-mono text-[clamp(12px,3.2vw,14px)] font-bold tracking-[0.12em] text-black">PROFILE</p>
-					<div className="w-[clamp(28px,8vw,40px)]" aria-hidden="true" />
-				</header>
+			<main className="min-h-dvh bg-[#f8f8f8] pb-[calc(96px+env(safe-area-inset-bottom))] text-black sm:flex sm:justify-center">
+				<section className="mx-auto min-h-dvh w-full max-w-screen-sm bg-[#f8f8f8]">
+					<header className="sticky top-0 z-30 border-b border-[#f3f4f6] bg-[#eef1f4] px-6 py-4">
+						<div className="flex items-center justify-between">
+							<Image
+								src="/assets/figma-capstone/dashboard-impactful-wordmark-node-1115-748.png"
+								alt="Impactful"
+								width={100}
+								height={48}
+								unoptimized
+								className="h-12 w-[100px] object-contain"
+							/>
+							<FullTopMenu />
+						</div>
+					</header>
 
-				<div className="px-[clamp(14px,4.5vw,20px)] pb-[clamp(18px,5vw,24px)] pt-[clamp(8px,2.8vw,16px)] text-center">
-					<div className="mx-auto flex h-[clamp(78px,24vw,96px)] w-[clamp(78px,24vw,96px)] items-center justify-center rounded-full bg-black shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-						<span className="font-sans text-[clamp(24px,7vw,30px)] font-bold leading-none text-white">{initials}</span>
-					</div>
-					<h1 className="mt-[clamp(12px,3.5vw,16px)] font-sans text-[clamp(28px,8.6vw,38px)] font-bold leading-[1.05] tracking-[-0.04em] text-black">
-						{displayName}
-					</h1>
-					<p className="mt-1 wrap-break-word font-sans text-[clamp(13px,3.7vw,14px)] text-[#6a7282]">
-						{roleLabel} · {displayEmail}
-					</p>
-					<button
-						type="button"
-						className="mt-[clamp(12px,3.5vw,16px)] rounded-full bg-[#ff8d00] px-[clamp(14px,4.5vw,16px)] py-[clamp(10px,3.2vw,12px)] font-sans text-[clamp(15px,4.2vw,16px)] font-bold leading-none text-white"
-					>
-						Edit Profile
-					</button>
-				</div>
-
-				<div className="px-[clamp(10px,3.8vw,16px)]">
-					<div className="overflow-hidden rounded-2xl border border-[#f1f5f9] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.15),0_1px_2px_rgba(0,0,0,0.1)]">
-						{profileActions.map((action) => (
-							<div key={action.label} className="border-b border-[#f8fafc] last:border-b-0">
-								<ActionRow action={action} />
+					<div className="px-6 py-6">
+						<div className="rounded-3xl border-[1.836px] border-[#f1f3f6] bg-white px-[26px] py-[24px] text-center shadow-[0px_4px_0px_#eff1f5]">
+							<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#0e6b7c]">
+								<span className="font-sans text-2xl font-bold leading-8 text-white">{initials}</span>
 							</div>
-						))}
-
-						<div className="flex h-14 items-center justify-between px-5">
-							<div className="flex items-center gap-3">
-								<span className="font-sans text-[clamp(15px,4.2vw,16px)] leading-none text-black">◑</span>
-								<span className="font-sans text-[clamp(13px,3.7vw,14px)] font-medium text-black">Dark Mode</span>
-							</div>
-							<button
-								type="button"
-								onClick={() => setDarkModeEnabled((current) => !current)}
-								aria-pressed={darkModeEnabled}
-								className={`relative h-6 w-10 rounded-full transition-colors ${
-									darkModeEnabled ? "bg-black" : "bg-[#e5e7eb]"
-								}`}
+							<h2 className="mt-3 font-sans text-[18px] font-bold leading-[1.5] text-black">{displayName}</h2>
+							<p className="mt-0.5 break-words font-sans text-[13px] leading-[1.5] text-[#99a1af]">{displayEmail}</p>
+							<Link
+								href="/profile/edit"
+								className="mt-4 inline-flex rounded-full bg-[#ff8d00] px-6 py-2.5 font-mono text-xs font-bold tracking-[0.1em] text-white shadow-[0px_3px_0px_#b46300]"
 							>
-								<span
-									className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] transition-all ${
-										darkModeEnabled ? "left-5" : "left-1"
-									}`}
-								/>
-							</button>
+								EDIT PROFILE
+							</Link>
+						</div>
+
+						<div className="pt-6">
+							<p className="font-mono text-xs font-bold tracking-[0.1em] text-[#99a1af]">SETTINGS</p>
+							<div className="space-y-3 pt-3">
+								{profileActions.map((action) => (
+									<div key={action.label} className="rounded-[20px] border-[1.836px] border-[#f1f3f6] bg-white shadow-[0px_4px_0px_#eff1f5]">
+										<ActionRow action={action} />
+									</div>
+								))}
+							</div>
 						</div>
 
 						<LogoutButton
 							variant="ghost"
-							className="flex h-14 w-full items-center justify-between px-5 text-[#99a1af] hover:bg-transparent hover:text-[#6a7282]"
+							className="mt-6 flex h-[50px] w-full items-center justify-center rounded-full border-[1.836px] border-[#e5e7eb] bg-transparent px-5 font-sans text-[15px] font-bold text-[#99a1af] hover:bg-transparent hover:text-[#7f8898]"
 						>
-							<div className="flex items-center gap-3">
-								<span className="font-sans text-[clamp(15px,4.2vw,16px)] leading-none text-[#99a1af]">→</span>
-								<span className="font-sans text-[clamp(13px,3.7vw,14px)] font-medium text-[#99a1af]">Sign Out</span>
-							</div>
-							<span className="font-sans text-[18px] leading-none text-[#d1d5dc]">›</span>
+							Sign Out
 						</LogoutButton>
 					</div>
-				</div>
-			</section>
+				</section>
 
-			<MobileBottomNav />
-		</main>
+				<MobileBottomNav />
+			</main>
 		</RequireSession>
 	);
 }

@@ -49,7 +49,7 @@ export function TutorialScreen({ moduleSlug = "deceptive-design" }: TutorialScre
 	return (
 		<main className="min-h-dvh bg-[#f1f3f5] text-black">
 			<section className="relative mx-auto h-dvh w-full max-w-[430px] overflow-hidden bg-white">
-				<header className="relative border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
+				<header className="sticky top-0 z-30 border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
 					<div className="flex items-center justify-between">
 						<Image
 							src={wordmarkSrc}

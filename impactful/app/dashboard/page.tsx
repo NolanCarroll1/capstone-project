@@ -426,7 +426,7 @@ export default function DashboardPage() {
 		<RequireSession>
 			<main className="min-h-dvh w-full bg-white text-black">
 				<section className="mx-auto min-h-dvh w-full max-w-screen-sm bg-white">
-					<header className="border-b border-[#f3f4f6] bg-[#eef1f4] px-6 py-4">
+					<header className="sticky top-0 z-30 border-b border-[#f3f4f6] bg-[#eef1f4] px-6 py-4">
 						<div className="flex items-center justify-between">
 							<Image
 								src="/assets/figma-capstone/dashboard-impactful-wordmark-node-1115-748.png"

@@ -1,9 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { FullTopMenu } from "../_components/FullTopMenu";
 
 const wordmarkSrc = "/assets/figma-capstone/story-begins-impactful-wordmark-node-1117-939.png";
+const mascotSrc = "/assets/figma-capstone/stats/mascot.png";
+const trustSrc = "/assets/figma-capstone/stats/trust.png";
+const revenueSrc = "/assets/figma-capstone/stats/revenue.png";
+const populationSrc = "/assets/figma-capstone/stats/population.png";
+const shareIconSrc = "/assets/figma-capstone/stats/share.svg";
 
 type StatsPageProps = {
 	searchParams?: {
@@ -20,236 +28,138 @@ function parseNumber(value: string | undefined, fallback: number) {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function getBarWidth(current: number, baseline: number) {
-	const ratio = current / Math.max(current, baseline, 1);
-	return `${Math.max(20, Math.round(ratio * 100))}%`;
-}
-
-function CroppedMascot() {
-	return (
-		<div className="relative h-25 w-18.25" aria-hidden>
-			<Image
-				src="/assets/mascot-look-around.png"
-				alt=""
-				width={320}
-				height={255}
-				unoptimized
-				className="pointer-events-none h-full w-full select-none object-contain"
-			/>
-		</div>
-	);
-}
-
 function StatCard({
+	iconSrc,
 	label,
 	value,
 	from,
-	description,
-	barWidth,
-	accent,
 }: {
+	iconSrc: string;
 	label: string;
 	value: number;
 	from: number;
-	description: string;
-	barWidth: string;
-	accent: {
-		cardBg: string;
-		trackBg: string;
-		barPositive: string;
-		barNegative: string;
-		badgePositiveBg: string;
-		badgePositiveText: string;
-		badgeNegativeBg: string;
-		badgeNegativeText: string;
-	};
 }) {
 	const change = value - from;
-	const isNegative = change < 0;
-	const isNeutral = change === 0;
-	const deltaSymbol = isNegative ? "▼" : isNeutral ? "■" : "▲";
+	const delta = change > 0 ? `+${change}` : `${change}`;
 
 	return (
-		<div className="rounded-2xl border border-[#eceff3] px-4 py-4 shadow-[0_1px_0_rgba(0,0,0,0.02)]" style={{ backgroundColor: accent.cardBg }}>
-			<div className="flex items-start justify-between gap-4">
-				<div>
-					<p className="font-sans text-[11px] font-semibold tracking-[0.18em] text-[#7d8598]">
-						{label}
-					</p>
-					<div className="mt-3 flex items-baseline gap-2">
-						<p className="font-sans text-[32px] font-bold leading-none tracking-tighter text-black">
-							{value}
-						</p>
-						<p className="font-sans text-[13px] text-[#94a0b4]">from {from}</p>
-					</div>
-				</div>
-
-				<div
-					className="rounded-full px-2.5 py-1 font-sans text-[12px] font-semibold"
-					style={{
-						backgroundColor: isNegative ? accent.badgeNegativeBg : accent.badgePositiveBg,
-						color: isNegative ? accent.badgeNegativeText : accent.badgePositiveText,
-					}}
-				>
-					{deltaSymbol} {change > 0 ? `+${change}` : change}
-				</div>
+		<div className="h-[158.54px] rounded-4xl border-[1.804px] border-[#f1f3f6] bg-white p-[17.804px] shadow-[0px_4px_0px_#eff1f5]">
+			<div className="mx-auto h-12 w-12">
+				<Image src={iconSrc} alt="" width={48} height={48} unoptimized className="h-12 w-12 object-contain" />
 			</div>
-
-			<div className="mt-4 h-2 rounded-full" style={{ backgroundColor: accent.trackBg }}>
-				<div
-					className="h-full rounded-full"
-					style={{ width: barWidth, backgroundColor: isNegative ? accent.barNegative : accent.barPositive }}
-				/>
+			<p className="pt-2 text-center font-sans text-[22px] font-bold leading-5.5 text-black">{value}</p>
+			<p className="pt-1 text-center font-mono text-[10px] font-bold tracking-widest text-[#99a1af]">{label}</p>
+			<div className="mx-auto mt-2 inline-flex rounded-full bg-[#f0fdf4] px-2 py-0.5">
+				<p className="text-center font-sans text-[12px] font-bold text-[#15803d]">{delta}</p>
 			</div>
-
-			<p className="mt-3 max-w-65 font-sans text-[13px] leading-[1.45] text-[#707989]">
-				{description}
-			</p>
 		</div>
 	);
 }
 
 export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: StatsPageProps) {
+	const [reflection, setReflection] = useState("");
 	const trust = parseNumber(searchParams?.trust, 38);
 	const revenue = parseNumber(searchParams?.revenue, 1420);
 	const population = parseNumber(searchParams?.population, 515);
 	const choiceCount = parseNumber(searchParams?.choiceCount, 5);
+	const shareParams = new URLSearchParams({
+		trust: String(trust),
+		revenue: String(revenue),
+		population: String(population),
+		choiceCount: String(choiceCount),
+	});
+	const shareHref = `/modules/${moduleSlug}/share?${shareParams.toString()}`;
 
 	const stats = [
 		{
+			iconSrc: trustSrc,
 			label: "TRUST",
 			value: trust,
 			from: 50,
-			description: "Citizens noticed the tradeoffs in your consent and data choices.",
-			barWidth: getBarWidth(trust, 50),
-			accent: {
-				cardBg: "#f5f9ff",
-				trackBg: "#dbeafe",
-				barPositive: "#2563eb",
-				barNegative: "#dc2626",
-				badgePositiveBg: "#dcfce7",
-				badgePositiveText: "#15803d",
-				badgeNegativeBg: "#fee2e2",
-				badgeNegativeText: "#b91c1c",
-			},
 		},
 		{
+			iconSrc: revenueSrc,
 			label: "REVENUE",
 			value: revenue,
 			from: 1000,
-			description: "Your decisions shaped how much the town could earn from the marketplace.",
-			barWidth: getBarWidth(revenue, 1000),
-			accent: {
-				cardBg: "#fff8f1",
-				trackBg: "#ffedd5",
-				barPositive: "#ff8d00",
-				barNegative: "#dc2626",
-				badgePositiveBg: "#dcfce7",
-				badgePositiveText: "#15803d",
-				badgeNegativeBg: "#fee2e2",
-				badgeNegativeText: "#b91c1c",
-			},
 		},
 		{
+			iconSrc: populationSrc,
 			label: "POPULATION",
 			value: population,
 			from: 500,
-			description: "Some citizens stayed, some left, and some arrived based on the experience you built.",
-			barWidth: getBarWidth(population, 500),
-			accent: {
-				cardBg: "#f4fbf6",
-				trackBg: "#dcfce7",
-				barPositive: "#16a34a",
-				barNegative: "#dc2626",
-				badgePositiveBg: "#dcfce7",
-				badgePositiveText: "#15803d",
-				badgeNegativeBg: "#fee2e2",
-				badgeNegativeText: "#b91c1c",
-			},
 		},
 	] as const;
 
 	return (
-		<main className="min-h-screen bg-[#f5f6f8] text-black">
-			<header className="relative border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
-				<div className="mx-auto flex w-full max-w-screen-sm items-center justify-between">
-					<Image
-						src={wordmarkSrc}
-						alt="Impactful"
-						width={107}
-						height={48}
-						unoptimized
-						className="h-[clamp(38px,11vw,48px)] w-auto object-contain"
-					/>
-					<FullTopMenu />
-				</div>
-			</header>
+		<main className="min-h-dvh bg-[#f1f3f5] text-black">
+			<section className="relative mx-auto min-h-dvh w-full max-w-107.5 bg-white">
+				<header className="sticky top-0 z-30 border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
+					<div className="flex items-center justify-between">
+						<Image
+							src={wordmarkSrc}
+							alt="Impactful"
+							width={107}
+							height={48}
+							unoptimized
+							className="h-[clamp(38px,11vw,48px)] w-auto object-contain"
+						/>
+						<FullTopMenu />
+					</div>
+				</header>
 
-			<section className="mx-auto w-full max-w-98.25 px-4 py-8 sm:px-6 sm:py-6 lg:max-w-295 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
-				<div>
-					<div className="mb-6 flex items-start gap-4">
-						<CroppedMascot />
-						<div className="pt-1">
-							<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#98a0b3]">
-								ALL 5 PHASES COMPLETE
-							</p>
-							<h1 className="mt-2 font-mono text-[40px] font-bold leading-[0.95] tracking-[-0.06em] text-black">
-								Town Stats
-							</h1>
-						</div>
+				<div className="px-6 pb-6 pt-10">
+					<div className="mx-auto w-full max-w-86.25">
+					<div className="flex flex-col items-center">
+						<Image src={mascotSrc} alt="Town mascot" width={112} height={112} unoptimized className="h-28 w-28 object-contain" />
+						<p className="pt-4 font-mono text-xs font-bold tracking-widest text-[#99a1af]">ALL {choiceCount} PHASES COMPLETE</p>
+						<h1 className="pt-1 text-center font-sans text-[28px] font-bold leading-8.75 text-black">Your Town Results</h1>
 					</div>
 
-					<div className="mt-3 inline-flex bg-black px-4 py-2">
-						<p className="font-mono text-[12px] font-bold tracking-[0.18em] text-white">
-							DECEPTIVE DESIGN MODULE
-						</p>
-					</div>
-
-					<div className="mt-8 space-y-4">
+					<div className="grid grid-cols-[107.07px_107.08px_107.07px] gap-3 pt-8">
 						{stats.map((stat) => (
 							<StatCard key={stat.label} {...stat} />
 						))}
 					</div>
-				</div>
 
-				<div className="mt-8 lg:mt-0">
-					<div className="rounded-2xl bg-black px-4 py-5 text-white shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
-						<p className="font-sans text-[12px] font-semibold uppercase tracking-[0.18em] text-[#7d8598]">
-							REFLECTION
-						</p>
-						<p className="mt-3 max-w-[320px] font-sans text-[16px] leading-[1.65] tracking-[-0.01em] text-[#e4e7ec]">
-							Your choices shaped a town that is profitable but fragile. Revenue grew, but
-							trust dropped — and a town without trust struggles to hold its population as
-							they become more aware of how they&apos;ve been treated. Every design decision
-							has a cost. The question is who pays it.
-						</p>
+					<div className="pt-8">
+						<p className="font-mono text-xs font-bold tracking-widest text-[#99a1af]">YOUR REFLECTION</p>
+						<div className="mt-3 rounded-[24px] border-[1.804px] border-[#f1f3f6] bg-white p-[21.804px] shadow-[0px_4px_0px_#eff1f5]">
+							<p className="max-w-75.5 pb-3 font-sans text-sm leading-[1.38] text-[#6a7282]">
+								What did you learn from your choices? What would you do differently?
+							</p>
+							<textarea
+								value={reflection}
+								onChange={(event) => setReflection(event.target.value)}
+								placeholder="Write your thoughts here..."
+								className="h-27.75 w-full resize-none rounded-2xl border-[1.804px] border-[#f1f3f6] bg-[#f8f8f8] px-[17.804px] py-[13.804px] font-sans text-sm text-black/70 outline-none"
+							/>
+							<button
+								type="button"
+								className="mt-4.5 h-[35.977px] w-[165.947px] rounded-full bg-[#ff8d00] px-8 font-mono text-xs font-bold tracking-widest text-white opacity-40 shadow-[0px_3px_0px_#b46300]"
+							>
+								SAVE REFLECTION
+							</button>
+						</div>
 					</div>
 
-					<div className="mt-8 space-y-3">
+					<div className="pt-6">
+						<Link
+							href={shareHref}
+							className="flex h-[54.48px] w-full items-center justify-center gap-2 rounded-[1000px] bg-[#0e6b7c] font-sans text-[15px] font-bold text-white shadow-[0px_4px_0px_#07505e]"
+						>
+							<Image src={shareIconSrc} alt="" width={18} height={18} className="h-4.5 w-4.5" />
+							<span className="leading-none">Share My Results</span>
+						</Link>
+
 						<Link
 							href={`/modules/${moduleSlug}/tutorial`}
-							className="flex h-11 items-center justify-center rounded-[14px] border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
+							className="mt-3 flex h-[54.48px] w-full items-center justify-center rounded-[1000px] bg-[#ff8d00] text-center font-sans text-[15px] font-bold text-white shadow-[0px_4px_0px_#b46300]"
 						>
-							[ NEW STORY ]
+							Play Again
 						</Link>
-
-						<Link
-							href="/dashboard"
-							className="flex h-11 items-center justify-center rounded-[14px] border-2 border-black bg-white font-mono text-[14px] font-bold tracking-[0.18em] text-black transition-colors hover:bg-black hover:text-white"
-						>
-							[ DASHBOARD ]
-						</Link>
-
-						<button
-							type="button"
-							className="flex h-11 w-full items-center justify-center rounded-[14px] bg-[#ff8d00] font-mono text-[14px] font-bold tracking-[0.18em] text-white transition-colors hover:bg-[#ff9d1a]"
-						>
-							[ SHARE RESULTS ]
-						</button>
 					</div>
-					<p className="mt-6 font-sans text-[12px] text-[#98a0b3]">
-						Choices made: {choiceCount} / 5
-					</p>
+					</div>
 				</div>
 			</section>
 		</main>
