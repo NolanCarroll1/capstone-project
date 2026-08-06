@@ -18,6 +18,10 @@ export function RequireSession({
 	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
 
 	useEffect(() => {
+		if (session === undefined) {
+			return;
+		}
+
 		if (!session) {
 			router.replace(redirectTo ?? "/login");
 			return;
@@ -28,7 +32,7 @@ export function RequireSession({
 		}
 	}, [redirectTo, requiredRole, router, session]);
 
-	if (!session || (requiredRole && session.role !== requiredRole)) {
+	if (session === undefined || !session || (requiredRole && session.role !== requiredRole)) {
 		return null;
 	}
 

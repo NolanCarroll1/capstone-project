@@ -5,15 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { authenticateAdmin, getAdminAccountName, registerAdminFromInvite } from "@/lib/auth/adminInvites";
-import { getActiveSession, getPostLoginHref, setActiveSession } from "@/lib/auth/session";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearActiveSession, getPostLoginHref, refreshSessionSnapshot } from "@/lib/auth/session";
 
 type AuthMode = "sign-in" | "sign-up";
 type LoginPanel = "user" | "admin";
 type AdminAuthMode = "sign-in" | "sign-up";
-
-const USER_EMAIL = "user@impactful.org";
-const DEMO_PASSWORD = "password";
 
 function normalize(value: string) {
 	return value.trim().toLowerCase();
@@ -127,6 +124,7 @@ export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [userError, setUserError] = useState("");
+	const [userNotice, setUserNotice] = useState("");
 	const [adminMode, setAdminMode] = useState<AdminAuthMode>("sign-in");
 	const [adminEmail, setAdminEmail] = useState("");
 	const [adminPassword, setAdminPassword] = useState("");
@@ -135,6 +133,7 @@ export default function LoginPage() {
 	const [adminFullName, setAdminFullName] = useState("");
 	const [adminError, setAdminError] = useState("");
 	const [adminNotice, setAdminNotice] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const isAdminPanel = panel === "admin";
 	const resolvedMode: AuthMode = isAdminPanel ? adminMode : mode;
@@ -143,49 +142,120 @@ export default function LoginPage() {
 	const normalizedAdminName = normalizeName(adminFullName);
 
 	useEffect(() => {
-		const session = getActiveSession();
-		if (session) {
-			router.replace(getPostLoginHref(session));
-		}
+		let cancelled = false;
+		void refreshSessionSnapshot().then((session) => {
+			if (!cancelled && session) {
+				router.replace(getPostLoginHref(session));
+			}
+		});
+		return () => {
+			cancelled = true;
+		};
 	}, [router]);
 
-	const handleUserSubmit = () => {
+	const handleUserSubmit = async () => {
+		const supabase = getSupabaseBrowserClient();
+
 		if (mode === "sign-up") {
 			if (!normalizedUserName || normalizedUserName.split(" ").length < 2) {
+				setUserNotice("");
 				setUserError("Enter first and last name.");
 				return;
 			}
 			if (!normalize(email) || !password.trim()) {
+				setUserNotice("");
 				setUserError("Enter your email and password.");
 				return;
 			}
+
+			setIsSubmitting(true);
 			setUserError("");
-			setActiveSession("user", email, normalizedUserName);
-			router.push("/dashboard");
+			setUserNotice("");
+			const { data, error } = await supabase.auth.signUp({
+				email: normalize(email),
+				password,
+				options: {
+					data: {
+						full_name: normalizedUserName,
+						role: "user",
+					},
+				},
+			});
+			setIsSubmitting(false);
+			if (error) {
+				setUserNotice("");
+				setUserError(error.message);
+				return;
+			}
+
+			if (!data.session) {
+				setUserError("");
+				setUserNotice("Account created. Check your email to confirm, then sign in.");
+				setMode("sign-in");
+				return;
+			}
+
+			const session = await refreshSessionSnapshot();
+			router.push(getPostLoginHref(session));
 			return;
 		}
 
-		if (normalize(email) !== USER_EMAIL || password !== DEMO_PASSWORD) {
-			setUserError("Use user@impactful.org with password 'password' for user login.");
+		if (!normalize(email) || !password.trim()) {
+			setUserNotice("");
+			setUserError("Enter your email and password.");
 			return;
 		}
 
+		setIsSubmitting(true);
 		setUserError("");
-		setActiveSession("user", email, normalizedUserName || "User Impactful");
-		router.push("/dashboard");
+		setUserNotice("");
+		const { error } = await supabase.auth.signInWithPassword({
+			email: normalize(email),
+			password,
+		});
+		setIsSubmitting(false);
+		if (error) {
+			setUserNotice("");
+			setUserError(error.message);
+			return;
+		}
+
+		const session = await refreshSessionSnapshot();
+		router.push(getPostLoginHref(session));
 	};
 
-	const handleAdminSubmit = () => {
+	const handleAdminSubmit = async () => {
+		const supabase = getSupabaseBrowserClient();
+
 		if (adminMode === "sign-in") {
-			if (!authenticateAdmin(adminEmail, adminPassword)) {
+			if (!normalize(adminEmail) || !adminPassword.trim()) {
 				setAdminNotice("");
-				setAdminError("Invalid credentials. Use an invited admin account or create one with your invite code.");
+				setAdminError("Enter your email and password.");
+				return;
+			}
+
+			setIsSubmitting(true);
+			const { error } = await supabase.auth.signInWithPassword({
+				email: normalize(adminEmail),
+				password: adminPassword,
+			});
+			setIsSubmitting(false);
+			if (error) {
+				setAdminNotice("");
+				setAdminError(error.message);
+				return;
+			}
+
+			const session = await refreshSessionSnapshot();
+			if (session?.role !== "admin") {
+				await clearActiveSession();
+				setAdminNotice("");
+				setAdminError("This account is not an admin account.");
 				return;
 			}
 
 			setAdminError("");
 			setAdminNotice("");
-			setActiveSession("admin", adminEmail, getAdminAccountName(adminEmail));
 			router.push("/admin");
 			return;
 		}
@@ -202,24 +272,52 @@ export default function LoginPage() {
 			return;
 		}
 
-		const result = registerAdminFromInvite({
-			email: adminEmail,
-			code: adminInviteCode,
-			password: adminPassword,
-			fullName: normalizedAdminName,
-		});
-
-		if (!result.ok) {
+		if (!adminInviteCode.trim()) {
 			setAdminNotice("");
-			setAdminError(result.message);
+			setAdminError("Invite code is required.");
+			return;
+		}
+
+		setIsSubmitting(true);
+		const { data, error } = await supabase.auth.signUp({
+			email: normalize(adminEmail),
+			password: adminPassword,
+			options: {
+				data: {
+					full_name: normalizedAdminName,
+					role: "admin",
+					invite_code: adminInviteCode.trim().toUpperCase(),
+				},
+			},
+		});
+		setIsSubmitting(false);
+		if (error) {
+			setAdminNotice("");
+			setAdminError(error.message);
+			return;
+		}
+
+		if (!data.session) {
+			setAdminError("");
+			setAdminNotice("Admin account created. Check your email to confirm, then sign in.");
+			setAdminInviteCode("");
+			setAdminConfirmPassword("");
+			setAdminMode("sign-in");
+			return;
+		}
+
+		const session = await refreshSessionSnapshot();
+		if (session?.role !== "admin") {
+			await clearActiveSession();
+			setAdminNotice("");
+			setAdminError("This account is not an admin account.");
 			return;
 		}
 
 		setAdminError("");
-		setAdminNotice(result.message);
+		setAdminNotice("Admin account created.");
 		setAdminInviteCode("");
 		setAdminConfirmPassword("");
-		setActiveSession("admin", adminEmail, normalizedAdminName);
 		router.push("/admin");
 	};
 
@@ -245,6 +343,7 @@ export default function LoginPage() {
 					onChange={(next) => {
 						setPanel(next);
 						setUserError("");
+						setUserNotice("");
 						setAdminError("");
 						setAdminNotice("");
 					}}
@@ -261,6 +360,7 @@ export default function LoginPage() {
 							} else {
 								setMode(next);
 								setUserError("");
+								setUserNotice("");
 							}
 						}}
 					/>
@@ -301,6 +401,7 @@ export default function LoginPage() {
 				) : (
 					<>
 						{userError ? <p className="pt-3 text-sm text-[#b42318]">{userError}</p> : null}
+						{userNotice ? <p className="pt-3 text-sm text-[#0f5047]">{userNotice}</p> : null}
 						{!isSignUp ? (
 							<div className="pt-2 text-right">
 								<a href="#forgot" className="font-sans text-[12px] text-[#99a1af] underline underline-offset-2">
@@ -314,7 +415,8 @@ export default function LoginPage() {
 				<button
 					type="button"
 					onClick={isAdminPanel ? handleAdminSubmit : handleUserSubmit}
-					className="mt-6 h-[56px] w-full rounded-[1000px] bg-[#ff8d00] font-sans text-[16px] font-bold text-white shadow-[0px_4px_0px_#b46300]"
+					disabled={isSubmitting}
+					className="mt-6 h-[56px] w-full rounded-[1000px] bg-[#ff8d00] font-sans text-[16px] font-bold text-white shadow-[0px_4px_0px_#b46300] disabled:cursor-not-allowed disabled:opacity-70"
 				>
 					{isAdminPanel
 						? isSignUp
