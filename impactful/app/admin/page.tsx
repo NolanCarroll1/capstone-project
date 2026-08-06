@@ -76,16 +76,19 @@ export default function AdminDashboardPage() {
 					<HeroStat label="Phases" value={phaseCount} />
 					<HeroStat label="Invite completion" value={`${inviteCompletion}%`} />
 				</div>
-				<Image
-					src={adminAssets.villageBanner}
-					alt=""
-					width={1920}
-					height={512}
-					unoptimized
-					aria-hidden
-					className="pointer-events-none relative mt-6 -mb-6 w-full select-none opacity-90 sm:-mb-9"
-					style={{ imageRendering: "pixelated" }}
-				/>
+				<div className="pointer-events-none relative mt-6 -mb-6 -mx-6 select-none sm:-mx-9 sm:-mb-9">
+					<Image
+						src={adminAssets.villageBanner}
+						alt=""
+						width={1920}
+						height={512}
+						loading="eager"
+						unoptimized
+						aria-hidden
+						className="block h-auto w-full opacity-90"
+						style={{ imageRendering: "pixelated" }}
+					/>
+				</div>
 			</section>
 
 			<div className="mt-6 grid gap-4 lg:grid-cols-3">
