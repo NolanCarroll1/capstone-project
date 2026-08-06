@@ -1,6 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { FullTopMenu } from "../_components/FullTopMenu";
+
+const wordmarkSrc = "/assets/figma-capstone/story-begins-impactful-wordmark-node-1117-939.png";
+
 type StatsPageProps = {
 	searchParams?: {
 		trust?: string;
@@ -166,8 +170,22 @@ export function StatsScreen({ searchParams, moduleSlug = "deceptive-design" }: S
 	] as const;
 
 	return (
-		<main className="min-h-screen bg-[#f5f6f8] px-4 py-8 text-black sm:flex sm:items-center sm:justify-center sm:px-6 sm:py-6">
-			<section className="w-full max-w-98.25 lg:grid lg:max-w-295 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
+		<main className="min-h-screen bg-[#f5f6f8] text-black">
+			<header className="relative border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
+				<div className="mx-auto flex w-full max-w-screen-sm items-center justify-between">
+					<Image
+						src={wordmarkSrc}
+						alt="Impactful"
+						width={107}
+						height={48}
+						unoptimized
+						className="h-[clamp(38px,11vw,48px)] w-auto object-contain"
+					/>
+					<FullTopMenu />
+				</div>
+			</header>
+
+			<section className="mx-auto w-full max-w-98.25 px-4 py-8 sm:px-6 sm:py-6 lg:max-w-295 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
 				<div>
 					<div className="mb-6 flex items-start gap-4">
 						<CroppedMascot />
