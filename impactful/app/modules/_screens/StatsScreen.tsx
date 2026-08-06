@@ -23,20 +23,14 @@ function getBarWidth(current: number, baseline: number) {
 
 function CroppedMascot() {
 	return (
-		<div className="relative h-[100px] w-[73px] overflow-hidden" aria-hidden>
+		<div className="relative h-25 w-18.25" aria-hidden>
 			<Image
-				src="/assets/welcome-logo-node-686-16004-latest.png"
+				src="/assets/mascot-look-around.png"
 				alt=""
-				width={711}
-				height={441}
+				width={320}
+				height={255}
 				unoptimized
-				className="pointer-events-none absolute max-w-none select-none"
-				style={{
-					height: "441.38%",
-					width: "711.11%",
-					left: "-19.91%",
-					top: "-100%",
-				}}
+				className="pointer-events-none h-full w-full select-none object-contain"
 			/>
 		</div>
 	);

@@ -1,12 +1,13 @@
 "use client";
 
-import { forwardRef, useEffect, useReducer, useRef, useState } from "react";
-import type { CSSProperties } from "react";
-import { Mascot } from "../../admin/_components/Mascot";
+import Image from "next/image";
+import Link from "next/link";
+import { Menu, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useReducer, useRef, useState, useSyncExternalStore } from "react";
 
-const figmaChevronIcon = "http://localhost:3845/assets/495276258fcba1d3f857200f1e5584f3c06587ed.svg";
-
+import { LogoutButton } from "@/app/_components/LogoutButton";
+import { getSessionSnapshot, subscribeToSession } from "@/lib/auth/session";
 
 type StatKey = "trust" | "revenue" | "population";
 type Phase = 1 | 2 | 3 | 4 | 5;
@@ -41,23 +42,17 @@ type RoundConfig = {
 	choices: Choice[];
 };
 
-type ChoiceCardProps = {
-	choice: Choice;
-	isActive: boolean;
-	isComplete: boolean;
-	onActivate: () => void;
-	onChoose: () => void;
-	roundPhase?: number;
-};
-
 type Action =
 	| {
-		type: "apply-choice";
-		delta: StatDelta;
-	}
+			type: "apply-choice";
+			delta: StatDelta;
+	  }
 	| {
-		type: "reset";
-	};
+			type: "reset";
+	  };
+
+const wordmarkSrc = "/assets/figma-capstone/story-begins-impactful-wordmark-node-1117-939.png";
+const topMascotSrc = "/assets/figma-capstone/tutorial-top-mascot-node-1118-1896.png";
 
 const initialState: GameState = {
 	trust: 50,
@@ -103,7 +98,7 @@ const rounds: RoundConfig[] = [
 				title: "Full Coverage",
 				description:
 					"A full-screen overlay ensures every visitor makes a choice. The accept option is optimized for conversion.",
-				preview: "Cookie Policy\nsettings — privacy",
+				preview: "Cookie Policy\nsettings - privacy",
 				delta: { trust: -12, revenue: 45, population: -6 },
 			},
 		],
@@ -151,7 +146,7 @@ const rounds: RoundConfig[] = [
 		phaseLabel: "PHASE 3 OF 5",
 		scenarioTitle: "Re-Engagement",
 		scenarioDescription:
-			"Citizens who declined notifications before — should you ask them again?",
+			"Citizens who declined notifications before - should you ask them again?",
 		callout:
 			"Notifications drive traffic, but repeated prompts erode the trust you already have with these citizens.",
 		choices: [
@@ -292,362 +287,404 @@ function gameReducer(state: GameState, action: Action): GameState {
 	}
 }
 
-function ChoicePreview({ text }: { text: string }) {
+function GameTopMenu() {
+	const [open, setOpen] = useState(false);
+	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
+	const canAccessAdmin = session?.role === "admin";
+
 	return (
-		<div className="rounded-[18px] border border-[#dde3ea] bg-[#f7f8fa] p-3 text-[#1f2937]">
-			<div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.2em] text-[#9ca3af]">
-				<span>Preview</span>
-				<span className="inline-flex gap-0.75">
-					<span className="h-2 w-2 rounded-full bg-[#d4d8de]" />
-					<span className="h-2 w-2 rounded-full bg-[#d4d8de]" />
-					<span className="h-2 w-2 rounded-full bg-[#d4d8de]" />
-				</span>
-			</div>
-			<div className="mt-3 rounded-[14px] border border-[#ebeff4] bg-white p-4 text-[11px] leading-normal text-[#425062] shadow-[0_1px_0_rgba(0,0,0,0.04)]">
-				{text.split("\n").map((line, index) => (
-					<p key={`${line}-${index}`}>{line}</p>
-				))}
-			</div>
-		</div>
+		<>
+			<button
+				type="button"
+				aria-label={open ? "Close menu" : "Open menu"}
+				onClick={() => setOpen((value) => !value)}
+				className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-[#08394d] transition-colors hover:bg-[#dfe7ef]"
+			>
+				{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+			</button>
+
+			{open ? (
+				<div className="fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)}>
+					<nav
+						aria-label="Game navigation"
+						onClick={(event) => event.stopPropagation()}
+						className="absolute left-1/2 top-0 w-full max-w-[430px] -translate-x-1/2 rounded-b-[28px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.14)]"
+					>
+						<div className="flex items-center justify-between px-6 pb-4 pt-6">
+							<p className="font-mono text-[12px] font-bold tracking-[0.1em] text-[#99a1af]">MENU</p>
+							<button
+								type="button"
+								aria-label="Close menu"
+								onClick={() => setOpen(false)}
+								className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#99a1af] transition-colors hover:bg-[#f3f4f6]"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+
+						<div className="px-6 pb-6">
+							<div className="flex items-center gap-3 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-[17px] py-[13px]">
+								<Search className="h-4 w-4 text-[#99a1af]" />
+								<span className="font-sans text-[14px] text-[#999999]">Search</span>
+							</div>
+						</div>
+
+						<div className="px-6 pb-3">
+							<p className="font-mono text-[11px] tracking-[0.06em] text-[#99a1af]">NAVIGATE</p>
+						</div>
+
+						<ul className="space-y-5 px-6 pb-8">
+							<li>
+								<Link
+									href="/profile"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									My Profile
+								</Link>
+							</li>
+							{canAccessAdmin ? (
+								<li>
+									<Link
+										href="/admin"
+										onClick={() => setOpen(false)}
+										className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+									>
+										Admin Panel
+									</Link>
+								</li>
+							) : null}
+							<li>
+								<Link
+									href="/dashboard"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									Dashboard
+								</Link>
+							</li>
+							<li className="pt-1">
+								<LogoutButton
+									redirectTo="/login"
+									onLoggedOut={() => setOpen(false)}
+									variant="ghost"
+									className="h-auto justify-start p-0 font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666] hover:bg-transparent hover:text-[#444]"
+								>
+									Log out
+								</LogoutButton>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			) : null}
+		</>
 	);
 }
 
-function FigmaChevron({ expanded }: { expanded: boolean }) {
-	return (
-		<span className={`inline-flex h-6 w-6 items-center justify-center transition-transform ${expanded ? "-rotate-90" : "rotate-180"}`}>
-			<img alt="" aria-hidden="true" className="block h-6 w-6 max-w-none" src={figmaChevronIcon} />
-		</span>
-	);
-}
-
-function FigmaButton({
-	children,
-	className,
-	onClick,
-	ariaLabel,
-	disabled,
-	style,
+function ChoiceCard({
+	choice,
+	phase,
+	isSelected,
+	onSelect,
+	reference,
 }: {
-	children: string;
-	className: string;
-	onClick?: () => void;
-	ariaLabel?: string;
-	disabled?: boolean;
-	style?: CSSProperties;
+	choice: Choice;
+	phase: Phase;
+	isSelected: boolean;
+	onSelect: () => void;
+	reference: (node: HTMLButtonElement | null) => void;
 }) {
+	const previewContent = (() => {
+		if (phase === 5) {
+			switch (choice.id) {
+				case "A":
+					return (
+						<>
+							<p className="font-sans text-[12px] font-bold leading-4 text-black">Order Summary</p>
+							<div className="mt-3 space-y-2 border-b border-[#f3f4f6] pb-2">
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Item total</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">$24.00</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Shipping</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">$3.50</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Tax</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">$1.92</span>
+								</div>
+							</div>
+							<div className="mt-2 flex items-center justify-between">
+								<span className="font-sans text-[12px] font-bold leading-4 text-black">Total</span>
+								<span className="font-sans text-[12px] font-bold leading-4 text-black">$29.42</span>
+							</div>
+							<div className="mt-3 rounded-[4px] bg-[#85d79a] py-2 text-center font-sans text-[12px] font-bold text-[#186620]">Confirm Order</div>
+						</>
+					);
+				case "B":
+					return (
+						<>
+							<div className="flex items-center justify-between border-b border-[#f3f4f6] pb-2">
+								<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Items</span>
+								<span className="font-sans text-[12px] leading-4 text-[#6a7282]">$24.00</span>
+							</div>
+							<div className="mt-3 rounded-[14px] border border-[#e5e7eb] bg-[#f9fafb] p-3">
+								<p className="font-sans text-[12px] leading-4 text-[#99a1af]">Enter address to calculate shipping &amp; tax</p>
+								<div className="mt-2 rounded-[12px] border border-[#d1d5dc] px-3 py-2 font-sans text-[12px] leading-4 text-[#99a1af]">Street address</div>
+							</div>
+							<div className="mt-3 rounded-[4px] bg-[#d9f0f7] py-2 text-center font-sans text-[12px] font-bold text-[#004b6a]">Calculate &amp; Continue</div>
+						</>
+					);
+				case "C":
+					return (
+						<>
+							<div className="flex items-center justify-between border-b border-[#f3f4f6] pb-2">
+								<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Item</span>
+								<span className="font-sans text-[12px] font-bold leading-4 text-black">$24.00</span>
+							</div>
+							<div className="mt-3 space-y-2 border-b border-[#f3f4f6] pb-2">
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Service fee</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">+$2.40</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Processing fee</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">+$1.20</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">Handling fee</span>
+									<span className="font-sans text-[12px] leading-4 text-[#6a7282]">+$1.50</span>
+								</div>
+							</div>
+							<div className="mt-2 flex items-center justify-between">
+								<span className="font-sans text-[12px] font-bold leading-4 text-black">Total</span>
+								<span className="font-sans text-[12px] font-bold leading-4 text-black">$29.10</span>
+							</div>
+						</>
+					);
+				default:
+					return null;
+			}
+		}
+
+		if (phase === 4) {
+			switch (choice.id) {
+				case "A":
+					return (
+						<>
+							<p className="font-sans text-[12px] font-bold leading-4 text-black">Curated for you</p>
+							<div className="mt-3 space-y-2">
+								<div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2">
+									<div className="h-8 w-8 rounded-[14px] bg-[#f3f4f6]" />
+									<p className="font-sans text-[12px] leading-4 text-[#364153]">Local Artisan Goods</p>
+								</div>
+								<div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2">
+									<div className="h-8 w-8 rounded-[14px] bg-[#f3f4f6]" />
+									<p className="font-sans text-[12px] leading-4 text-[#364153]">Community Picks</p>
+								</div>
+								<div className="flex items-center gap-2 border-b border-[#f3f4f6] pb-2">
+									<div className="h-8 w-8 rounded-[14px] bg-[#f3f4f6]" />
+									<p className="font-sans text-[12px] leading-4 text-[#364153]">New This Week</p>
+								</div>
+							</div>
+						</>
+					);
+				case "B":
+					return (
+						<>
+							<div className="flex items-center justify-between">
+								<p className="font-sans text-[12px] font-bold leading-4 text-black">Your Streak</p>
+								<p className="font-sans text-[12px] font-bold leading-4 text-black">7 days</p>
+							</div>
+							<div className="mt-3 grid grid-cols-7 gap-1">
+								{Array.from({ length: 7 }).map((_, i) => (
+									<div key={i} className="h-6 rounded-[10px] bg-[#ff8d00]" />
+								))}
+							</div>
+							<div className="mt-3 rounded-[4px] bg-[#d9f0f7] px-3 py-2 text-center font-sans text-[12px] font-semibold leading-4 text-[#004b6a]">
+								250 pts - Redeem
+							</div>
+						</>
+					);
+				case "C":
+					return (
+						<>
+							<div className="rounded-[14px] border border-[#e5e7eb] px-[12.609px] py-[12px]">
+								<p className="font-sans text-[12px] font-bold leading-4 text-black">Only 2 left in stock!</p>
+								<div className="mt-2 flex items-center gap-2">
+									<span className="h-2 w-2 rounded-full bg-[#99a1af]" />
+									<p className="font-sans text-[12px] leading-4 text-[#4a5565]">47 people viewing this now</p>
+								</div>
+								<div className="mt-2 flex items-center gap-2">
+									<p className="font-sans text-[12px] font-bold leading-4 text-[#6a7282]">Offer ends in:</p>
+									<span className="rounded-full bg-black px-2 py-0.5 font-sans text-[12px] font-bold leading-4 text-white">09:59</span>
+								</div>
+							</div>
+						</>
+					);
+				default:
+					return null;
+			}
+		}
+
+		if (phase === 3) {
+			switch (choice.id) {
+				case "A":
+					return (
+						<>
+							<p className="font-sans text-[12px] leading-4 text-[#4a5565]">Notification preference saved.</p>
+							<p className="mt-3 font-sans text-[12px] leading-4 text-[#6a7282]">
+								You can update this anytime in <span className="underline">Settings -&gt; Notifications</span>.
+							</p>
+							<div className="mt-3 rounded-[4px] bg-[#dcf5e3] py-2 text-center font-sans text-[12px] font-bold text-[#186620]">Got it</div>
+						</>
+					);
+				case "B":
+					return (
+						<>
+							<div className="rounded-[14px] border border-[#e5e7eb] bg-[#f9fafb] p-[12.609px]">
+								<div className="flex items-start gap-2">
+									<p className="flex-1 font-sans text-[12px] leading-4 text-[#364153]">Stay updated - turn on notifications?</p>
+									<div className="flex shrink-0 items-center gap-2">
+										<span className="font-sans text-[16px] font-medium leading-6 text-[#99a1af]">Later</span>
+										<span className="font-sans text-[16px] font-bold leading-6 text-black">Yes</span>
+									</div>
+								</div>
+							</div>
+							<p className="mt-3 text-center font-sans text-[12px] leading-4 text-[#99a1af]">Shown once a month</p>
+						</>
+					);
+				case "C":
+					return (
+						<>
+							<div className="w-full rounded-[14px] px-[clamp(10px,3vw,12px)] pb-[clamp(6px,2vw,8px)] pt-[clamp(8px,2.6vw,12px)]">
+								<p className="font-sans text-[12px] font-bold leading-4 text-[#121212]">⚠️ You are missing important updates!</p>
+								<p className="mt-[clamp(6px,1.8vw,8px)] font-sans text-[12px] leading-4 text-[#6a7282]">Enable notifications NOW to stay informed.</p>
+								<div className="mt-[clamp(10px,3vw,12px)] rounded-full bg-white py-[clamp(6px,2vw,8px)] text-center font-sans text-[clamp(14px,4.2vw,16px)] font-bold leading-6 text-black">
+									Allow Notifications
+								</div>
+								<p className="mt-[clamp(6px,1.8vw,8px)] text-center font-sans text-[12px] leading-4 text-[#6a7282]">x Maybe later (limited)</p>
+							</div>
+						</>
+					);
+				default:
+					return null;
+			}
+		}
+
+		if (phase === 2) {
+			switch (choice.id) {
+				case "A":
+					return (
+						<>
+							<p className="font-sans text-[12px] font-bold leading-4 text-black">Create your account</p>
+							<div className="mt-3 rounded-[14px] border border-[#d1d5dc] px-[12.609px] py-[8.609px] font-sans text-[12px] leading-4 text-[#99a1af]">Email address</div>
+							<div className="mt-2 rounded-[14px] border border-[#d1d5dc] px-[12.609px] py-[8.609px] font-sans text-[12px] leading-4 text-[#99a1af]">Password</div>
+							<div className="mt-3 rounded-[4px] bg-[#85d79a] py-2 text-center font-sans text-[12px] font-bold text-[#0f6826]">Join Now</div>
+						</>
+					);
+				case "B":
+					return (
+						<>
+							<div className="flex gap-1">
+								<span className="h-1 w-full rounded-full bg-black" />
+								<span className="h-1 w-full rounded-full bg-[#e5e7eb]" />
+								<span className="h-1 w-full rounded-full bg-[#e5e7eb]" />
+							</div>
+							<p className="mt-2 font-sans text-[12px] font-bold leading-4 text-black">Step 1 of 3 - Basic Info</p>
+							<div className="mt-3 rounded-[14px] border border-[#d1d5dc] px-[12.609px] py-[8.609px] font-sans text-[12px] leading-4 text-[#99a1af]">Full name</div>
+							<div className="mt-3 rounded-[4px] bg-[#d9f0f7] py-2 text-center font-sans text-[12px] font-bold text-[#004b6a]">Continue -&gt;</div>
+						</>
+					);
+				case "C":
+					return (
+						<>
+							<p className="font-sans text-[12px] font-bold leading-4 text-black">Sign in to continue</p>
+							<div className="mt-3 border border-[#d1d5dc] py-[8.609px] text-center font-sans text-[12px] leading-4 text-[#364153]">Continue with Google</div>
+							<div className="mt-2 border border-[#d1d5dc] py-[8.609px] text-center font-sans text-[12px] leading-4 text-[#364153]">Continue with Facebook</div>
+							<p className="mt-2 text-center font-sans text-[12px] leading-4 text-[#99a1af]">No email signup available</p>
+						</>
+					);
+				default:
+					return null;
+			}
+		}
+
+		switch (choice.id) {
+			case "A":
+				return (
+					<>
+						<p className="font-sans text-[12px] font-bold leading-4 text-black">We use cookies</p>
+						<p className="mt-3 font-sans text-[12px] leading-4 text-[#6a7282]">
+							We collect browsing data to improve your experience. You choose what to share.
+						</p>
+						<div className="mt-3 grid grid-cols-2 gap-3">
+							<div className="rounded-[4px] bg-[#85d79a] py-2 text-center font-sans text-[12px] font-bold text-[#0f6826]">Accept</div>
+							<div className="rounded-[4px] bg-[#ffe0d7] py-2 text-center font-sans text-[12px] font-bold text-[#9f2600]">Decline</div>
+						</div>
+					</>
+				);
+			case "B":
+				return (
+					<>
+						<p className="font-sans text-[12px] font-bold leading-4 text-black">Preview</p>
+						<p className="mt-3 font-sans text-[12px] leading-4 text-[#6a7282]">We use cookies to improve your experience.</p>
+						<div className="mt-3 grid grid-cols-2 gap-3">
+							<div className="rounded-[4px] bg-[#dcf5e3] py-2 text-center font-sans text-[12px] font-bold text-[#186620]">Accept</div>
+							<div className="rounded-[4px] bg-[#d9f0f7] py-2 text-center font-sans text-[12px] font-bold text-[#004b6a]">Learn More</div>
+						</div>
+					</>
+				);
+			case "C":
+				return (
+					<>
+						<p className="font-sans text-[12px] font-bold leading-4 text-[#08394d]">Cookie Policy</p>
+						<p className="mt-3 text-center font-sans text-[12px] leading-4 text-[#6a7282]">settings - privacy</p>
+						<div className="mt-3 rounded-[4px] bg-[#d9f0f7] py-2 text-center font-sans text-[12px] font-bold text-[#004b6a]">Accept All</div>
+					</>
+				);
+			default:
+				return null;
+		}
+	})();
+
 	return (
 		<button
 			type="button"
-			aria-label={ariaLabel}
-			disabled={disabled}
-			onClick={(event) => {
-				event.stopPropagation();
-				onClick?.();
-			}}
-			className={className}
-			style={style}
-		>
-			{children}
-		</button>
-	);
-}
-
-const firstRoundCardBase =
-	"w-85.5 shrink-0 snap-center rounded-2xl bg-white p-6 text-[#0f1724] shadow-sm transition-colors duration-200 lg:w-88.5";
-
-const FirstRoundChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function FirstRoundChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose },
-	ref,
-) {
-	const cardWidthClass = choice.id === "B" ? "lg:w-87.5" : "lg:w-88.5";
-
-	return (
-		<article
-			ref={ref}
-			className={`${cardWidthClass} shrink-0 snap-center text-[#0f1724]`}
+			ref={reference}
+			onClick={onSelect}
+			className="relative w-[calc(100vw-56px)] max-w-[360px] shrink-0 snap-center rounded-[24px] border-2 bg-white p-[clamp(18px,5.6vw,26px)] text-left transition-all"
 			style={{
-				backgroundColor: '#ffffff',
-				border: '1.827px solid #e5e7eb',
-				borderRadius: 24,
-				padding: 25.827,
-				boxShadow: '0px 4px 0px #e5e7eb',
+				borderColor: isSelected ? "#acb101" : "#f1f3f6",
+				boxShadow: isSelected ? "0px 4px 0px #acb101" : "0px 4px 0px #eff1f5",
 			}}
-			onClick={onActivate}
-			onKeyDown={(event) => {
-				if (event.key === "Enter" || event.key === " ") {
-					event.preventDefault();
-					onActivate();
-				}
-			}}
-			tabIndex={0}
-			role="button"
-			aria-expanded={isActive}
-			aria-label={`${choice.title}, ${isActive ? "expanded" : "collapsed"}`}
 		>
-			<button
-				type="button"
-				className="flex w-full items-center justify-between"
-				onClick={(event) => {
-					event.stopPropagation();
-					onActivate();
-				}}
-			>
-				<p className="font-mono text-xl font-bold leading-none">{choice.name}</p>
-				<FigmaChevron expanded={isActive} />
-			</button>
-
-			<div className="flex flex-col gap-2 mt-3">
-				<h2 className="font-sans text-lg font-bold leading-none tracking-normal text-slate-900">{choice.title}</h2>
-				<p className="max-w-md font-sans text-sm font-normal leading-6 text-slate-600">{choice.description}</p>
-			</div>
-
-			{isActive ? (
-				<div style={{
-					border: '1.827px solid #e5e7eb',
-					borderRadius: 8,
-					padding: 13.827,
-					backgroundColor: '#ffffff'
-				}}>
-					{/* Preview area */}
-					<div className="flex flex-col gap-3">
-						<div>
-							<p className="font-sans text-sm font-semibold" style={{fontSize:12}}>{choice.id === "A" ? "We use cookies" : "Preview"}</p>
-							<p className="mt-1 text-sm" style={{color: '#6a7282', fontSize:12}}>{choice.id === "A" ? "We collect browsing data to improve your experience. You choose what to share." : choice.preview}</p>
-						</div>
-						<div className="flex gap-3">
-							{choice.id === "A" ? (
-								<>
-									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#85d79a', color: '#0f6826', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept</FigmaButton>
-									<FigmaButton ariaLabel="Decline" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#ffe0d7', color: '#9f2600', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Decline</FigmaButton>
-								</>
-							) : choice.id === "B" ? (
-								<>
-									<FigmaButton ariaLabel="Accept" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#dcf5e3', color: '#186620', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept</FigmaButton>
-									<FigmaButton ariaLabel="Learn More" className="flex h-9 flex-1 items-center justify-center rounded" style={{backgroundColor: '#d9f0f7', color: '#004b6a', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Learn More</FigmaButton>
-								</>
-							) : (
-								<FigmaButton ariaLabel="Accept All" className="flex h-9 w-full items-center justify-center rounded" style={{backgroundColor: '#d9f0f7', color: '#004b6a', borderRadius:4, padding:'8px 12px', fontWeight:700}}>Accept All</FigmaButton>
-							)}
-						</div>
-					</div>
-				</div>
+			{isSelected ? (
+				<span className="absolute right-[clamp(10px,3.4vw,16px)] top-[clamp(10px,3.4vw,16px)] inline-flex h-[clamp(20px,6vw,24px)] w-[clamp(20px,6vw,24px)] items-center justify-center rounded-full bg-[#acb101] text-[clamp(10px,3vw,12px)] font-bold text-white">
+					✓
+				</span>
 			) : null}
 
-		</article>
-	);
-});
-
-const ChoiceCard = forwardRef<HTMLElement, ChoiceCardProps>(function ChoiceCard(
-	{ choice, isActive, isComplete, onActivate, onChoose, roundPhase },
-	ref,
-) {
-	const statTiles = [
-		{ label: "Trust", value: choice.delta.trust ?? 0 },
-		{ label: "Revenue", value: choice.delta.revenue ?? 0 },
-		{ label: "Pop.", value: choice.delta.population ?? 0 },
-	] as const;
-
-	function renderVariantPreview() {
-		const key = `${roundPhase}-${choice.id}`;
-		switch (key) {
-			case "2-A":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Quick start</p>
-						<div className="mt-2 flex flex-col gap-2">
-							<input aria-label="email" placeholder="Email" className="rounded-md border border-[#e6e9ee] px-3 py-2 text-sm" />
-							<input aria-label="password" placeholder="Password" className="rounded-md border border-[#e6e9ee] px-3 py-2 text-sm" />
-							<div className="mt-2 flex gap-2">
-								<button className="flex-1 rounded-md" style={{backgroundColor:'#85d79a', color:'#0f6826', fontWeight:700, padding:'8px 12px'}}>Join</button>
-								<button className="flex-1 rounded-md border border-[#dfe6ea]" style={{backgroundColor:'#ffffff', color:'#374151', padding:'8px 12px'}}>Maybe later</button>
-							</div>
-						</div>
-					</div>
-				);
-			case "2-B":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Guided setup — Step 1 of 3</p>
-						<div className="mt-3 h-3 w-full rounded-full bg-[#eef3f7] overflow-hidden">
-							<div style={{width:'33%', height:'100%', background:'#004b6a'}} />
-						</div>
-						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Continue</button>
-					</div>
-				);
-			case "2-C":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Social login</p>
-						<div className="mt-3 flex flex-col gap-2">
-							<button className="rounded-md border px-3 py-2 text-sm" style={{borderColor:'#d1d5dc'}}>Continue with Google</button>
-							<button className="rounded-md border px-3 py-2 text-sm" style={{borderColor:'#d1d5dc'}}>Continue with Facebook</button>
-						</div>
-					</div>
-				);
-			case "3-A":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Respect the no</p>
-						<p className="mt-2 text-sm text-[#6a7282]">Notifications will remain off. Users can enable them in settings.</p>
-						<button className="mt-3 rounded-md" style={{backgroundColor:'#dcf5e3', color:'#186620', fontWeight:700, padding:'8px 12px'}}>Got it</button>
-					</div>
-				);
-			case "3-B":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Gentle reminder</p>
-						<p className="mt-2 text-sm text-[#6a7282]">We may show you a reminder after 30 days. Once per month max.</p>
-						<div className="mt-3 flex gap-2">
-							<button className="flex-1 rounded-md border" style={{borderColor:'#e6e9ee', padding:'8px 12px'}}>Later</button>
-							<button className="flex-1 rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Yes</button>
-						</div>
-					</div>
-				);
-			case "3-C":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Persistent prompts</p>
-						<p className="mt-2 text-sm text-[#6a7282]">We will ask on every visit with stronger language.</p>
-						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#ffffff', color:'#121212', border:'1px solid #d1d5dc', padding:'8px 12px'}}>Allow Notifications</button>
-					</div>
-				);
-			case "4-A":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Better content</p>
-						<ul className="mt-2 list-inside list-decimal text-sm text-[#374151]">
-							<li>Curated listings</li>
-							<li>Community highlights</li>
-							<li>Quality filters</li>
-						</ul>
-					</div>
-				);
-			case "4-B":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Gamification</p>
-						<div className="mt-3 flex items-center gap-2">
-							<div className="rounded-full px-3 py-1" style={{background:'#ffecd8', color:'#b45309'}}>Streak 5</div>
-							<button className="ml-auto rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', padding:'8px 12px', fontWeight:700}}>Redeem</button>
-						</div>
-					</div>
-				);
-			case "4-C":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">FOMO engine</p>
-						<p className="mt-2 text-sm text-[#6a7282]">Only 2 items left — exclusive deal.</p>
-						<div className="mt-3 inline-flex items-center gap-2 rounded-full bg-black px-3 py-1 text-white">00:12</div>
-					</div>
-				);
-			case "5-A":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Transparent checkout</p>
-						<div className="mt-2 text-sm text-[#374151]">
-							<p>Item total: $24.00</p>
-							<p>Shipping: $4.00</p>
-							<p className="font-bold mt-1">Total: $28.00</p>
-						</div>
-						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#85d79a', color:'#0f6826', fontWeight:700, padding:'8px 12px'}}>Confirm Order</button>
-					</div>
-				);
-			case "5-B":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Progressive disclosure</p>
-						<p className="mt-2 text-sm text-[#6a7282]">Prices shown now, shipping after address.</p>
-						<button className="mt-3 w-full rounded-md" style={{backgroundColor:'#d9f0f7', color:'#004b6a', fontWeight:700, padding:'8px 12px'}}>Calculate Shipping</button>
-					</div>
-				);
-			case "5-C":
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Drip pricing</p>
-						<ul className="mt-2 text-sm text-[#374151]">
-							<li>Base price: $10.00</li>
-							<li>Service fee: $2.00</li>
-							<li>Processing: $1.00</li>
-							<li className="font-bold mt-1">Total: $13.00</li>
-						</ul>
-					</div>
-				);
-			default:
-				return (
-					<div>
-						<p className="font-sans text-sm font-semibold">Preview</p>
-						<p className="mt-2 text-sm text-[#6a7282]">{choice.preview}</p>
-					</div>
-				);
-		}
-	}
-
-	return (
-		<article
-			ref={ref}
-			className={`w-85.5 shrink-0 snap-center transition-colors duration-200 lg:w-88.5`}
-			style={{
-				backgroundColor: '#ffffff',
-				border: isActive ? '2px solid #000000' : '1.827px solid #e5e7eb',
-				borderRadius: 24,
-				padding: 20,
-				boxShadow: isActive ? '0px 6px 0px #e5e7eb' : '0px 4px 0px #e5e7eb',
-			}}
-			onClick={onActivate}
-			onKeyDown={(event) => {
-				if (event.key === "Enter" || event.key === " ") {
-					event.preventDefault();
-					onActivate();
-				}
-			}}
-			tabIndex={0}
-			role="button"
-			aria-expanded={isActive}
-			aria-label={`${choice.title}, ${isActive ? "expanded" : "collapsed"}`}
-		>
-			<button
-				type="button"
-				className="flex w-full items-center justify-between"
-				onClick={(event) => {
-					event.stopPropagation();
-					onActivate();
-				}}
-			>
-				<p className="font-mono text-[22px] font-bold leading-none text-[#0f1724]">{choice.name}</p>
-				<FigmaChevron expanded={isActive} />
-			</button>
-
-			<div className="flex flex-col gap-1">
-				<h2 className="font-sans text-[17px] font-bold leading-none tracking-normal text-[#0f1724]">
-					{choice.title}
-				</h2>
-				<p className="max-w-75.5 font-sans text-[17px] font-normal leading-none tracking-normal text-[#9aa4b2]">
-					{choice.description}
-				</p>
+			<div className="flex items-start justify-between gap-3">
+				<p className="font-mono text-[clamp(20px,6vw,22px)] font-bold leading-[1.2] text-[#121212]">{choice.name}</p>
 			</div>
 
-			{isActive ? (
-				<div className="mt-4 rounded-2xl border-2 border-[#7c7c7c] bg-white p-3 text-[#121212]">
-					<div className="flex flex-col gap-4">
-						{renderVariantPreview()}
-					</div>
-				</div>
-			) : (
-				<p className="mt-4 max-w-75 font-sans text-[11px] leading-normal text-[#8f98aa]">
-					Swipe to reveal this option&apos;s detail state.
-				</p>
-			)}
+			<div>
+				<h2 className="font-sans text-[clamp(16px,4.8vw,17px)] font-bold leading-[1.35] text-[#121212]">{choice.title}</h2>
+				<p className="mt-1 font-sans text-[clamp(14px,4.3vw,16px)] leading-[1.4] text-[#08394d]">{choice.description}</p>
+			</div>
 
-		</article>
-	);
-});
-
-function StatRow({ label, value }: { label: string; value: number }) {
-	return (
-		<div className="flex items-center justify-between gap-3">
-			<p className="font-sans text-[13px] text-[#6b7280]">{label}</p>
-			<p className="font-sans text-[13px] font-semibold text-black">{value}</p>
-		</div>
+			<div
+				className="mt-[clamp(12px,3.8vw,20px)] border-2 bg-white p-[clamp(10px,3.4vw,12px)]"
+				style={{
+					borderColor: isSelected ? "#acb101" : "#d7dae0",
+					boxShadow: isSelected ? "inset 0px 4px 0px #acb101" : "inset 0px 4px 0px #c9ced6",
+				}}
+			>
+				{previewContent}
+			</div>
+		</button>
 	);
 }
 
@@ -656,41 +693,61 @@ type GameScreenProps = {
 };
 
 export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps) {
-	const [state, dispatch] = useReducer(gameReducer, initialState);
 	const router = useRouter();
-	const choiceRefs = useRef<Record<ChoiceKey, HTMLElement | null>>({
+	const [state, dispatch] = useReducer(gameReducer, initialState);
+	const optionsScrollerRef = useRef<HTMLDivElement | null>(null);
+	const [selectedChoiceByPhase, setSelectedChoiceByPhase] = useState<Record<Phase, ChoiceKey | null>>({
+		1: null,
+		2: null,
+		3: null,
+		4: null,
+		5: null,
+	});
+	const choiceRefs = useRef<Record<ChoiceKey, HTMLButtonElement | null>>({
 		A: null,
 		B: null,
 		C: null,
 	});
-	const [expandedChoices, setExpandedChoices] = useState<Record<Phase, ChoiceKey>>({
-		1: "A",
-		2: "A",
-		3: "A",
-		4: "A",
-		5: "A",
-	});
 
 	const currentRound = rounds[state.phase - 1];
+	const selectedChoiceId = selectedChoiceByPhase[state.phase];
+	const selectedChoice = currentRound.choices.find((choice) => choice.id === selectedChoiceId) ?? null;
 	const isComplete = state.complete;
-	const expandedChoice = expandedChoices[state.phase] ?? "A";
 
-	useEffect(() => {
-		choiceRefs.current[expandedChoice]?.scrollIntoView({
-			behavior: "smooth",
-			block: "nearest",
-			inline: "center",
+	const selectChoice = (choiceId: ChoiceKey) => {
+		setSelectedChoiceByPhase((current) => {
+			const currentChoice = current[state.phase];
+			const nextChoice = currentChoice === choiceId ? null : choiceId;
+
+			if (nextChoice) {
+				choiceRefs.current[nextChoice]?.scrollIntoView({
+					behavior: "smooth",
+					block: "nearest",
+					inline: "center",
+				});
+			}
+
+			return { ...current, [state.phase]: nextChoice };
 		});
-	}, [expandedChoice, state.phase]);
+	};
 
-	const choosePath = (choice: Choice) => {
-		const nextTrust = Math.max(0, state.trust + (choice.delta.trust ?? 0));
-		const nextRevenue = Math.max(0, state.revenue + (choice.delta.revenue ?? 0));
-		const nextPopulation = Math.max(0, state.population + (choice.delta.population ?? 0));
+	const confirmChoice = () => {
+		if (!selectedChoice || isComplete) {
+			return;
+		}
+
+		const nextTrust = clampStat(state.trust + (selectedChoice.delta.trust ?? 0));
+		const nextRevenue = clampStat(state.revenue + (selectedChoice.delta.revenue ?? 0));
+		const nextPopulation = clampStat(state.population + (selectedChoice.delta.population ?? 0));
 		const nextChoiceCount = state.choiceCount + 1;
+		const nextPhase = state.phase < 5 ? ((state.phase + 1) as Phase) : state.phase;
 
-		dispatch({ type: "apply-choice", delta: choice.delta });
+		dispatch({ type: "apply-choice", delta: selectedChoice.delta });
+		setSelectedChoiceByPhase((current) => ({ ...current, [nextPhase]: null }));
 		window.scrollTo({ top: 0, behavior: "smooth" });
+		requestAnimationFrame(() => {
+			optionsScrollerRef.current?.scrollTo({ left: 0, behavior: "auto" });
+		});
 
 		if (state.phase === 5) {
 			router.push(
@@ -700,167 +757,121 @@ export function GameScreen({ moduleSlug = "deceptive-design" }: GameScreenProps)
 	};
 
 	return (
-		<main className="min-h-screen bg-white text-black">
-			<section className="mx-auto flex min-h-screen w-full max-w-98.25 flex-col px-6 py-10 lg:max-w-98.25">
-				<div className="flex items-center justify-between gap-4">
-					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
-						{currentRound.phaseLabel}
-					</p>
-
-					<div className="flex items-start gap-1.5">
-						{rounds.map((round) => (
-							<span
-								key={round.phase}
-								className={`h-3 w-3 rounded-full ${round.phase <= state.phase ? "bg-black" : "bg-[#d1d5db]"}`}
-							/>
-						))}
+		<main className="min-h-dvh w-full bg-[#f1f3f5] text-black">
+			<section className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-white">
+				<header className="relative border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
+					<div className="flex items-center justify-between">
+						<Image
+							src={wordmarkSrc}
+							alt="Impactful"
+							width={107}
+							height={48}
+							unoptimized
+							className="h-[clamp(38px,11vw,48px)] w-auto object-contain"
+						/>
+						<GameTopMenu />
 					</div>
-				</div>
+				</header>
 
-				<div className="pt-8">
-					{/* Illustration + callout layout from Figma (mascot replaced) */}
-					<div className="flex items-start gap-5">
-						{/* Use the admin Mascot component for consistent branding */}
-						<Mascot size={96} className="flex-none rounded-lg" />
-						<div className="rounded-lg p-5" style={{ backgroundColor: 'rgba(85,137,244,0.05)' }}>
-							<p className="font-sans text-xs font-bold leading-4 tracking-widest text-slate-400">
-								SCENARIO
-							</p>
-							<h1 className="pt-3 font-sans text-2xl font-bold leading-7 text-slate-900">
-								{currentRound.scenarioTitle}
-							</h1>
-							<p className="pt-3 font-sans text-sm font-normal leading-6 text-slate-700 max-w-xl">
+				<div className="flex-1 px-[clamp(16px,5.4vw,24px)] pb-[clamp(16px,6vw,32px)] pt-[clamp(12px,4vw,20px)] [@media(max-height:720px)]:pb-4 [@media(max-height:720px)]:pt-3">
+					<div className="flex items-center justify-between gap-4">
+						<p className="font-sans text-[12px] font-bold tracking-[0.1em] text-[#6a7282]">{currentRound.phaseLabel}</p>
+						<div className="flex gap-1.5">
+							{rounds.map((round) => (
+								<span
+									key={round.phase}
+									className={`h-1.5 rounded-full ${round.phase <= state.phase ? "w-5 bg-[#08394d]" : "w-1.5 bg-[#d1d5db]"}`}
+								/>
+							))}
+						</div>
+					</div>
+
+					<p className="mt-[clamp(12px,3.6vw,20px)] font-mono text-[11px] font-bold tracking-[0.08em] text-[#99a1af]">SCENARIO</p>
+
+					<div className="mt-2 flex items-start gap-[clamp(8px,2.8vw,12px)]">
+						<div className="relative h-[clamp(116px,37vw,160px)] w-[clamp(84px,27vw,117px)] shrink-0 overflow-hidden">
+							<Image
+								src={topMascotSrc}
+								alt=""
+								aria-hidden
+								width={778}
+								height={520}
+								unoptimized
+								className="absolute max-w-none"
+								style={{ width: "664.94%", height: "325.08%", left: "-564.94%", top: "-225.08%" }}
+							/>
+						</div>
+
+						<div className="rounded-[20px] bg-[rgba(255,141,0,0.24)] px-[clamp(12px,4vw,20px)] py-[clamp(12px,3.8vw,16px)]">
+							<p className="font-sans text-[clamp(14px,4.2vw,15px)] font-bold leading-[1.52] text-[#1e1c1c]">
 								{currentRound.scenarioDescription}
 							</p>
 						</div>
 					</div>
-				</div>
 
-					<div className="mt-5 rounded-[14px] border border-[#e5e7eb] bg-white p-[20.609px]">
-						<p className="font-sans text-[14px] font-semibold leading-[22.75px] text-[#364153]">
-							{currentRound.callout}
-						</p>
-					</div>
-
-					<div className="mt-5 rounded-[14px] border border-[#e5e7eb] bg-white p-[20.609px]">
-						<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#6a7282]">
-							CURRENT TOWN STATS
-						</p>
-						<div className="pt-3">
-							<div className="flex items-center justify-between py-3">
-								<p className="font-sans text-[14px] font-normal leading-5 text-[#6a7282]">Trust</p>
-								<p className="font-sans text-[14px] font-bold leading-5 text-black">{state.trust}</p>
-							</div>
-							<div className="flex items-center justify-between py-3">
-								<p className="font-sans text-[14px] font-normal leading-5 text-[#6a7282]">Revenue</p>
-								<p className="font-sans text-[14px] font-bold leading-5 text-black">{state.revenue}</p>
-							</div>
-							<div className="flex items-center justify-between py-3">
-								<p className="font-sans text-[14px] font-normal leading-5 text-[#6a7282]">Population</p>
-								<p className="font-sans text-[14px] font-bold leading-5 text-black">{state.population}</p>
-							</div>
-					</div>
-				</div>
-				<div className="pt-8">
-					<p className="font-sans text-[12px] font-bold leading-4 tracking-widest text-[#99a1af]">
-						CHOOSE ONE PATH
-					</p>
-				</div>
-
-				<div className="pt-8 pb-4">
-					<div className="-mx-6 overflow-x-auto px-6 pb-6 scrollbar-none">
-						<div className="flex snap-x snap-mandatory gap-6 pr-6">
-						{currentRound.phase === 1
-							? currentRound.choices.map((choice) => {
-								const isActive = choice.id === expandedChoice;
-
-								return (
-									<FirstRoundChoiceCard
-										key={choice.id}
-										ref={(node) => {
-											choiceRefs.current[choice.id] = node;
-										}}
-										choice={choice}
-										isActive={isActive}
-										isComplete={isComplete}
-										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
-										onChoose={() => choosePath(choice)}
-									/>
-								);
-								})
-							: currentRound.choices.map((choice) => {
-								const isActive = choice.id === expandedChoice;
-						
-								return (
-									<ChoiceCard
-										key={choice.id}
-										ref={(node) => {
-											choiceRefs.current[choice.id] = node;
-										}}
-										choice={choice}
-										isActive={isActive}
-										isComplete={isComplete}
-										roundPhase={currentRound.phase}
-										onActivate={() => setExpandedChoices((current) => ({ ...current, [state.phase]: choice.id }))}
-										onChoose={() => choosePath(choice)}
-									/>
-								);
-								})}
-						</div>
-					</div>
-
-					{/* Selection dots and global CTA to mirror the Figma layout */}
-					<div className="mt-4 flex flex-col items-center gap-4">
-						<div className="flex items-center gap-3">
-							{currentRound.choices.map((c) => (
-								<button
-									key={c.id}
-									type="button"
-									onClick={() => setExpandedChoices((current) => ({ ...current, [state.phase]: c.id }))}
-									className={`h-9 w-9 rounded-full flex items-center justify-center font-mono font-bold ${c.id === expandedChoice ? "bg-slate-800 text-white" : "bg-slate-200 text-slate-500"}`}>
-									{c.id}
-								</button>
+					<div ref={optionsScrollerRef} className="-mx-[clamp(16px,5.4vw,24px)] mt-[clamp(14px,4vw,24px)] overflow-x-auto px-[clamp(16px,5.4vw,24px)] pb-[clamp(10px,3.2vw,16px)] scrollbar-none">
+						<div className="flex snap-x snap-mandatory gap-4">
+							{currentRound.choices.map((choice) => (
+								<ChoiceCard
+									key={choice.id}
+									choice={choice}
+									phase={state.phase}
+									isSelected={choice.id === selectedChoiceId}
+									onSelect={() => selectChoice(choice.id)}
+									reference={(node) => {
+										choiceRefs.current[choice.id] = node;
+									}}
+								/>
 							))}
+							<div
+								aria-hidden
+								className="shrink-0"
+								style={{ width: "calc((100% - min(360px, calc(100vw - 56px))) / 2)" }}
+							/>
 						</div>
+					</div>
 
+					<div className="mt-[clamp(8px,2.8vw,12px)] flex items-center justify-center gap-[clamp(10px,3.2vw,16px)]">
+						{currentRound.choices.map((choice) => {
+							const selected = choice.id === selectedChoiceId;
+							return (
+								<button
+									key={choice.id}
+									type="button"
+									onClick={() => selectChoice(choice.id)}
+									className={`flex h-[clamp(36px,10vw,40px)] w-[clamp(36px,10vw,40px)] items-center justify-center rounded-full font-mono text-[clamp(13px,3.8vw,14px)] font-bold transition-colors ${
+										selected ? "bg-[#acb101] text-white" : "bg-[#e5e7eb] text-[#9ca3af]"
+									}`}
+								>
+									{choice.id}
+								</button>
+							);
+						})}
+					</div>
+
+					<button
+						type="button"
+						onClick={confirmChoice}
+						disabled={!selectedChoice || isComplete}
+						className="mt-[clamp(14px,4vw,24px)] h-[clamp(46px,13vw,50px)] w-full rounded-full bg-[#ff8d00] px-6 font-sans text-[clamp(15px,4.2vw,16px)] font-bold leading-none text-white shadow-[0_4px_0_#b46300] transition-opacity disabled:cursor-not-allowed disabled:bg-[#ffe4c3] disabled:text-[#fff7ea] disabled:shadow-[0_4px_0_#ffc987]"
+					>
+						Choose This Path
+					</button>
+
+					<div className="mt-[clamp(10px,3vw,16px)] flex items-center justify-between gap-3">
+						<p className="font-sans text-[clamp(11px,3.2vw,12px)] text-[#99a1af]">Choices made: {state.choiceCount} / 5</p>
 						<button
 							type="button"
 							onClick={() => {
-								const choice = currentRound.choices.find((item) => item.id === expandedChoice);
-								if (choice && !isComplete) choosePath(choice);
+								dispatch({ type: "reset" });
+								setSelectedChoiceByPhase({ 1: null, 2: null, 3: null, 4: null, 5: null });
 							}}
-							className="mt-2 w-64 rounded-full bg-orange-400 px-6 py-3 text-center font-sans font-bold text-white shadow-md"
-							disabled={isComplete}
+							className="shrink-0 rounded-full border border-[#d1d5db] px-3 py-1 font-mono text-[11px] font-bold tracking-[0.08em] text-[#4b5563]"
 						>
-							Choose This Path
+							RESET
 						</button>
 					</div>
 				</div>
-		
-		<div className="flex items-center justify-between gap-4 pt-2">
-				<p className="font-sans text-[12px] text-[#99a1af]">
-					Choices made: {state.choiceCount} / 5
-				</p>
-
-				<button
-					type="button"
-					onClick={() => dispatch({ type: "reset" })}
-					className="rounded-full border border-black px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.14em] text-black"
-				>
-					RESET
-				</button>
-		</div>
-
-				{isComplete ? (
-					<div className="mt-4 rounded-[14px] border border-black bg-black px-4 py-4 text-white">
-						<p className="font-sans text-[12px] font-semibold tracking-[0.18em] text-[#8e98ac]">
-							STORY COMPLETE
-						</p>
-						<p className="mt-2 font-sans text-[14px] leading-normal text-[#d3d8e1]">
-							You&apos;ve completed all five rounds. Reset to try a different path through the town.
-						</p>
-					</div>
-				) : null}
 			</section>
 		</main>
 	);
