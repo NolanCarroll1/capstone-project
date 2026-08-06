@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { LogoutButton } from "../_components/LogoutButton";
 import { RequireSession } from "../_components/RequireSession";
+import { getSessionSnapshot, subscribeToSession } from "@/lib/auth/session";
 
 type DashboardTile = {
 	label: string;
@@ -118,6 +119,8 @@ function WelcomeMascot({
 
 function DashboardTopMenu() {
 	const [open, setOpen] = useState(false);
+	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
+	const canAccessAdmin = session?.role === "admin";
 
 	return (
 		<>
@@ -170,22 +173,24 @@ function DashboardTopMenu() {
 									My Profile
 								</Link>
 							</li>
+							{canAccessAdmin ? (
+								<li>
+									<Link
+										href="/admin"
+										onClick={() => setOpen(false)}
+										className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+									>
+										Admin Panel
+									</Link>
+								</li>
+							) : null}
 							<li>
 								<Link
-									href="/admin"
+									href="/dashboard"
 									onClick={() => setOpen(false)}
 									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
 								>
-									Admin Panel
-								</Link>
-							</li>
-							<li>
-								<Link
-									href="/modules/deceptive-design"
-									onClick={() => setOpen(false)}
-									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
-								>
-									Deceptive Design
+									Dashboard
 								</Link>
 							</li>
 							<li className="pt-1">
