@@ -1,94 +1,188 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Menu, Search, X } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+
+import { LogoutButton } from "../../_components/LogoutButton";
+import { getSessionSnapshot, subscribeToSession } from "@/lib/auth/session";
 
 type ModuleInfo = {
-	title: string;
-	subtitle: string;
+	moduleLabel: string;
 	description: string;
-	phase: string;
-	meta: string[];
 };
 
 const moduleMap: Record<string, ModuleInfo> = {
 	"deceptive-design": {
-		title: "Digital Citizen",
-		subtitle: "Deceptive Design module",
+		moduleLabel: "DECEPTIVE DESIGN MODULE",
 		description:
-			"You're in charge of a growing digital town. Every design choice you make shapes how your citizens experience their online world. The path you choose decides what kind of community this becomes — and every decision leads somewhere different.",
-		phase: "PHASE 1 OF 5",
-		meta: ["5 phases", "10+ scenarios", "your path"],
+			"You’re in charge of a growing digital town. Every design choice you make shapes how your citizens experience their world.",
 	},
 };
 
-const illustrationSrc = "https://www.figma.com/api/mcp/asset/28e39449-71b0-4265-879e-596fca137b05";
+const illustrationSrc = "/assets/figma-capstone/story-begins-house-node-1117-930.png";
+const wordmarkSrc = "/assets/figma-capstone/story-begins-impactful-wordmark-node-1117-939.png";
 
-export default async function ModuleStartPage({ params }: { params: Promise<{ slug: string }> }) {
-	const { slug } = await params;
+function ModuleTopMenu() {
+	const [open, setOpen] = useState(false);
+	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
+	const canAccessAdmin = session?.role === "admin";
+
+	return (
+		<>
+			<button
+				type="button"
+				aria-label={open ? "Close menu" : "Open menu"}
+				onClick={() => setOpen((value) => !value)}
+				className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-[#08394d] transition-colors hover:bg-[#dfe7ef]"
+			>
+				{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+			</button>
+
+			{open ? (
+				<div className="fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)}>
+					<nav
+						aria-label="Dashboard navigation"
+						onClick={(event) => event.stopPropagation()}
+						className="absolute left-1/2 top-0 w-full max-w-screen-sm -translate-x-1/2 rounded-b-[28px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.14)]"
+					>
+						<div className="flex items-center justify-between px-6 pb-4 pt-6">
+							<p className="font-mono text-[12px] font-bold tracking-[0.1em] text-[#99a1af]">MENU</p>
+							<button
+								type="button"
+								aria-label="Close menu"
+								onClick={() => setOpen(false)}
+								className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#99a1af] transition-colors hover:bg-[#f3f4f6]"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+
+						<div className="px-6 pb-6">
+							<div className="flex items-center gap-3 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-[17px] py-[13px]">
+								<Search className="h-4 w-4 text-[#99a1af]" />
+								<span className="font-sans text-[14px] text-[#999999]">Search</span>
+							</div>
+						</div>
+
+						<div className="px-6 pb-3">
+							<p className="font-mono text-[11px] tracking-[0.06em] text-[#99a1af]">NAVIGATE</p>
+						</div>
+
+						<ul className="space-y-5 px-6 pb-8">
+							<li>
+								<Link
+									href="/profile"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									My Profile
+								</Link>
+							</li>
+							{canAccessAdmin ? (
+								<li>
+									<Link
+										href="/admin"
+										onClick={() => setOpen(false)}
+										className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+									>
+										Admin Panel
+									</Link>
+								</li>
+							) : null}
+							<li>
+								<Link
+									href="/dashboard"
+									onClick={() => setOpen(false)}
+									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
+								>
+									Dashboard
+								</Link>
+							</li>
+							<li className="pt-1">
+								<LogoutButton
+									redirectTo="/login"
+									onLoggedOut={() => setOpen(false)}
+									variant="ghost"
+									className="h-auto justify-start p-0 font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666] hover:bg-transparent hover:text-[#444]"
+								>
+									Log out
+								</LogoutButton>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			) : null}
+		</>
+	);
+}
+
+export default function ModuleStartPage() {
+	const params = useParams<{ slug?: string }>();
+	const slug = typeof params?.slug === "string" ? params.slug : "deceptive-design";
 	const moduleInfo = moduleMap[slug] ?? moduleMap["deceptive-design"];
 	const tutorialHref = `/modules/${slug}/tutorial`;
 
 	return (
-		<main className="min-h-dvh w-full overflow-x-hidden bg-white text-black">
-			<section className="flex min-h-dvh w-full flex-col bg-white">
-				<div className="flex flex-[0.9] min-h-0 flex-col items-center justify-center bg-black px-[clamp(24px,7vw,32px)] py-[clamp(32px,9vw,48px)] text-white">
-					<Image
-						src={illustrationSrc}
-						alt=""
-						width={220}
-						height={220}
-						unoptimized
-						className="h-[clamp(180px,52vw,220px)] w-[clamp(180px,52vw,220px)] shrink-0 object-cover"
-					/>
-					<div className="mt-[clamp(24px,6vw,32px)] text-center">
-						<p className="font-sans text-[clamp(22px,6vw,24px)] font-semibold leading-none tracking-wider text-[#99a1af]">
-							{moduleInfo.title.toUpperCase()}
-						</p>
-						<p className="mt-2 font-sans text-[clamp(18px,5vw,20px)] leading-[1.2] text-[#6a7282]">
-							{moduleInfo.subtitle}
-						</p>
+		<main className="min-h-dvh w-full bg-white text-black">
+			<section className="mx-auto flex min-h-dvh w-full max-w-screen-sm flex-col bg-white">
+				<header className="relative border-b border-[#f3f4f6] bg-[#eef1f4] px-[clamp(16px,6vw,24px)] py-[clamp(12px,4vw,16px)]">
+					<div className="flex items-center justify-between">
+						<Image
+							src={wordmarkSrc}
+							alt="Impactful"
+							width={107}
+							height={48}
+							unoptimized
+							className="h-[clamp(38px,11vw,48px)] w-auto object-contain"
+						/>
+						<ModuleTopMenu />
 					</div>
-				</div>
+				</header>
 
-				<div className="flex flex-[1.1] min-h-0 flex-col justify-between overflow-y-auto px-[clamp(24px,7vw,32px)] py-[clamp(28px,8vw,44px)] text-black">
-					<div>
-						<div className="inline-flex border-[1.827px] border-black px-[17.827px] py-[5.827px]">
-							<p className="font-mono text-[14px] font-bold leading-5 tracking-widest text-black">
-								{moduleInfo.phase}
-							</p>
-						</div>
+				<div className="flex flex-1 flex-col px-[clamp(16px,6vw,24px)] pb-[clamp(24px,8vw,40px)] pt-[clamp(16px,5vw,24px)]">
+					<Link
+						href="/dashboard"
+						className="inline-flex w-fit items-center gap-2 font-mono text-[clamp(12px,3.6vw,14px)] font-medium leading-5 text-[#99a1af]"
+					>
+						<span aria-hidden>←</span>
+						BACK
+					</Link>
 
-						<h1 className="mt-8 max-w-48 font-sans text-[clamp(32px,9vw,36px)] font-bold leading-tight tracking-[-0.06em] text-black">
+					<div className="flex flex-1 flex-col items-center justify-center pt-[clamp(8px,2.8vh,16px)] [@media(max-height:700px)]:justify-start [@media(max-height:700px)]:pt-3">
+						<Image
+							src={illustrationSrc}
+							alt=""
+							aria-hidden
+							width={266}
+							height={266}
+							unoptimized
+							className="h-auto w-full max-w-[clamp(200px,62vw,266px)] shrink-0 object-cover"
+						/>
+
+						<p className="mt-[clamp(14px,4.6vh,40px)] font-mono text-center text-[clamp(11px,3vw,12px)] font-bold leading-4 tracking-[0.1em] text-[#99a1af]">
+							{moduleInfo.moduleLabel}
+						</p>
+
+						<h1 className="mt-[clamp(12px,3vh,24px)] text-center font-sans text-[clamp(30px,9vw,36px)] font-bold leading-tight tracking-[-0.03em] text-black">
 							Your Story
 							<br />
 							Begins
 						</h1>
 
-						<p className="mt-6 max-w-79.25 font-sans text-[clamp(15px,4vw,16px)] leading-relaxed text-[#4a5565]">
+						<p className="mt-[clamp(12px,3vh,24px)] max-w-[346px] text-center font-sans text-[clamp(14px,3.8vw,15px)] leading-relaxed text-[#6a7282]">
 							{moduleInfo.description}
 						</p>
-
-						<div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-[clamp(11px,2.8vw,12px)] font-semibold leading-4 text-[#6a7282]">
-							{moduleInfo.meta.map((item, index) => (
-								<div key={item} className="flex items-center gap-6">
-									<p>{item}</p>
-									{index < moduleInfo.meta.length - 1 ? <span aria-hidden="true">·</span> : null}
-								</div>
-							))}
-						</div>
 					</div>
 
-					<div className="mt-10">
+					<div>
 						<Link
 							href={tutorialHref}
-								className="flex min-h-[clamp(54px,14vw,58px)] items-center justify-center border-[1.827px] border-black px-6 text-center font-mono text-[clamp(15px,4vw,16px)] font-bold tracking-widest text-black"
+							className="flex h-[clamp(52px,14vw,56px)] w-full items-center justify-center rounded-full bg-[#ff8d00] font-sans text-[clamp(15px,4.2vw,16px)] font-bold leading-6 text-white shadow-[0_4px_0_#b46300]"
 						>
-							[ BEGIN YOUR STORY ] →
-						</Link>
-						<Link
-							href="/dashboard"
-								className="mx-auto mt-4 flex min-h-[clamp(46px,12vw,50px)] w-full max-w-44 items-center justify-center bg-black px-6 text-center font-mono text-[14px] font-bold tracking-widest text-white"
-						>
-								← [ BACK ]
+							Begin Your Story
 						</Link>
 					</div>
 				</div>
