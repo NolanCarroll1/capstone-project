@@ -84,6 +84,70 @@ const moduleTiles: DashboardTile[] = [
 	},
 ];
 
+function toTitleCase(value: string) {
+	return value
+		.toLowerCase()
+		.replace(/(^|[\s\-'])[a-z]/g, (match) => match.toUpperCase());
+}
+
+function getNameParts(name?: string) {
+	if (!name) {
+		return [];
+	}
+
+	return name
+		.trim()
+		.split(/\s+/)
+		.filter(Boolean)
+		.map((part) => toTitleCase(part));
+}
+
+function getEmailChunks(email?: string) {
+	if (!email) {
+		return [];
+	}
+
+	const localPart = email.split("@")[0] ?? "";
+	return localPart
+		.split(/[._\-\s]+/)
+		.filter(Boolean)
+		.map((chunk) => toTitleCase(chunk));
+}
+
+function getDisplayFirstName(name?: string, email?: string) {
+	const nameParts = getNameParts(name);
+	if (nameParts.length > 0) {
+		return nameParts[0];
+	}
+
+	const emailChunks = getEmailChunks(email);
+	if (emailChunks.length > 0) {
+		return emailChunks[0];
+	}
+
+	return "there";
+}
+
+function getDisplayInitials(name?: string, email?: string, role?: "user" | "admin") {
+	const nameParts = getNameParts(name);
+	if (nameParts.length >= 2) {
+		return `${nameParts[0][0] ?? ""}${nameParts[nameParts.length - 1][0] ?? ""}`.toUpperCase();
+	}
+	if (nameParts.length === 1) {
+		return nameParts[0].slice(0, 2).toUpperCase();
+	}
+
+	const emailChunks = getEmailChunks(email);
+	if (emailChunks.length >= 2) {
+		return `${emailChunks[0][0] ?? ""}${emailChunks[1][0] ?? ""}`.toUpperCase();
+	}
+	if (emailChunks.length === 1) {
+		return emailChunks[0].slice(0, 2).toUpperCase();
+	}
+
+	return role === "admin" ? "AD" : "US";
+}
+
 function WelcomeMascot({
 	width,
 	height,
@@ -354,6 +418,10 @@ function ModuleTile({
 }
 
 export default function DashboardPage() {
+	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
+	const greetingName = getDisplayFirstName(session?.name, session?.email);
+	const initials = getDisplayInitials(session?.name, session?.email, session?.role);
+
 	return (
 		<RequireSession>
 			<main className="min-h-dvh w-full bg-white text-black">
@@ -378,7 +446,7 @@ export default function DashboardPage() {
 								<WelcomeMascot width={73} height={100} className="pointer-events-none shrink-0" />
 								<div>
 									<h1 className="font-sans text-[20px] font-bold leading-7.5 tracking-[-0.04em] text-[#2a3447]">
-										Hi, Jane
+										Hi, {greetingName}
 									</h1>
 									<p className="mt-1 font-sans text-[12px] leading-4.5 text-black/50">
 										Let&apos;s learn something new!
@@ -386,7 +454,7 @@ export default function DashboardPage() {
 								</div>
 							</div>
 							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0e6b7c] font-sans text-[14px] font-bold text-white">
-								JD
+								{initials}
 							</div>
 						</div>
 

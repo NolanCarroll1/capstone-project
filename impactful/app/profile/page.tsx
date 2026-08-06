@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { MobileBottomNav } from "../_components/MobileBottomNav";
 import { LogoutButton } from "../_components/LogoutButton";
 import { RequireSession } from "../_components/RequireSession";
+import { getSessionSnapshot, subscribeToSession } from "@/lib/auth/session";
 
 type ProfileAction = {
 	icon: string;
@@ -18,6 +19,70 @@ const profileActions: ProfileAction[] = [
 	{ icon: "◆", label: "Notifications" },
 	{ icon: "▤", label: "Module History", href: "/modules/deceptive-design" },
 ];
+
+function toTitleCase(value: string) {
+	return value
+		.toLowerCase()
+		.replace(/(^|[\s\-'])[a-z]/g, (match) => match.toUpperCase());
+}
+
+function getNameParts(name?: string) {
+	if (!name) {
+		return [];
+	}
+
+	return name
+		.trim()
+		.split(/\s+/)
+		.filter(Boolean)
+		.map((part) => toTitleCase(part));
+}
+
+function getEmailChunks(email?: string) {
+	if (!email) {
+		return [];
+	}
+
+	const localPart = email.split("@")[0] ?? "";
+	return localPart
+		.split(/[._\-\s]+/)
+		.filter(Boolean)
+		.map((chunk) => toTitleCase(chunk));
+}
+
+function getDisplayName(name?: string, email?: string) {
+	const nameParts = getNameParts(name);
+	if (nameParts.length > 0) {
+		return nameParts.join(" ");
+	}
+
+	const emailChunks = getEmailChunks(email);
+	if (emailChunks.length > 0) {
+		return emailChunks.join(" ");
+	}
+
+	return "Learner";
+}
+
+function getDisplayInitials(name?: string, email?: string, role?: "user" | "admin") {
+	const nameParts = getNameParts(name);
+	if (nameParts.length >= 2) {
+		return `${nameParts[0][0] ?? ""}${nameParts[nameParts.length - 1][0] ?? ""}`.toUpperCase();
+	}
+	if (nameParts.length === 1) {
+		return nameParts[0].slice(0, 2).toUpperCase();
+	}
+
+	const emailChunks = getEmailChunks(email);
+	if (emailChunks.length >= 2) {
+		return `${emailChunks[0][0] ?? ""}${emailChunks[1][0] ?? ""}`.toUpperCase();
+	}
+	if (emailChunks.length === 1) {
+		return emailChunks[0].slice(0, 2).toUpperCase();
+	}
+
+	return role === "admin" ? "AD" : "US";
+}
 
 function ActionRow({ action }: { action: ProfileAction }) {
 	const content = (
@@ -51,6 +116,11 @@ function ActionRow({ action }: { action: ProfileAction }) {
 
 export default function ProfilePage() {
 	const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+	const session = useSyncExternalStore(subscribeToSession, getSessionSnapshot, () => null);
+	const displayName = getDisplayName(session?.name, session?.email);
+	const displayEmail = session?.email ?? "No email";
+	const roleLabel = session?.role === "admin" ? "Admin" : "User";
+	const initials = getDisplayInitials(session?.name, session?.email, session?.role);
 
 	return (
 		<RequireSession>
@@ -66,13 +136,13 @@ export default function ProfilePage() {
 
 				<div className="px-[clamp(14px,4.5vw,20px)] pb-[clamp(18px,5vw,24px)] pt-[clamp(8px,2.8vw,16px)] text-center">
 					<div className="mx-auto flex h-[clamp(78px,24vw,96px)] w-[clamp(78px,24vw,96px)] items-center justify-center rounded-full bg-black shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-						<span className="font-sans text-[clamp(24px,7vw,30px)] font-bold leading-none text-white">JD</span>
+						<span className="font-sans text-[clamp(24px,7vw,30px)] font-bold leading-none text-white">{initials}</span>
 					</div>
 					<h1 className="mt-[clamp(12px,3.5vw,16px)] font-sans text-[clamp(28px,8.6vw,38px)] font-bold leading-[1.05] tracking-[-0.04em] text-black">
-						Jane Doe
+						{displayName}
 					</h1>
 					<p className="mt-1 wrap-break-word font-sans text-[clamp(13px,3.7vw,14px)] text-[#6a7282]">
-						User · jane.doe@impactful.app
+						{roleLabel} · {displayEmail}
 					</p>
 					<button
 						type="button"
