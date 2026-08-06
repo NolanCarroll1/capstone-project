@@ -100,7 +100,7 @@ function InputField({
 
 function WelcomeMascot() {
 	return (
-		<div className="relative h-[100px] w-[73px] overflow-hidden" aria-hidden>
+		<div className="relative h-[100px] w-[93px] overflow-hidden" aria-hidden>
 			<Image
 				src="/assets/welcome-logo-node-686-16004-latest.png"
 				alt=""
