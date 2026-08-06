@@ -186,11 +186,11 @@ function DashboardTopMenu() {
 							) : null}
 							<li>
 								<Link
-									href="/modules/deceptive-design"
+									href="/dashboard"
 									onClick={() => setOpen(false)}
 									className="block font-sans text-[24px] font-normal leading-5 tracking-[-0.01em] text-[#666666]"
 								>
-									Deceptive Design
+									Dashboard
 								</Link>
 							</li>
 							<li className="pt-1">
