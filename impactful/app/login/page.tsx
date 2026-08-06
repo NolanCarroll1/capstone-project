@@ -5,15 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { authenticateAdmin, getAdminAccountName, registerAdminFromInvite } from "@/lib/auth/adminInvites";
-import { getActiveSession, getPostLoginHref, setActiveSession } from "@/lib/auth/session";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearActiveSession, getPostLoginHref, refreshSessionSnapshot } from "@/lib/auth/session";
 
 type AuthMode = "sign-in" | "sign-up";
 type LoginPanel = "user" | "admin";
 type AdminAuthMode = "sign-in" | "sign-up";
-
-const USER_EMAIL = "user@impactful.org";
-const DEMO_PASSWORD = "password";
 
 function normalize(value: string) {
 	return value.trim().toLowerCase();
@@ -21,6 +18,13 @@ function normalize(value: string) {
 
 function normalizeName(value: string) {
 	return value.trim().replace(/\s+/g, " ");
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+	if (error instanceof Error && error.message.trim()) {
+		return error.message;
+	}
+	return fallback;
 }
 
 function AuthTabs({ mode, onModeChange }: { mode: AuthMode; onModeChange: (mode: AuthMode) => void }) {
@@ -127,6 +131,7 @@ export default function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [userError, setUserError] = useState("");
+	const [userNotice, setUserNotice] = useState("");
 	const [adminMode, setAdminMode] = useState<AdminAuthMode>("sign-in");
 	const [adminEmail, setAdminEmail] = useState("");
 	const [adminPassword, setAdminPassword] = useState("");
@@ -135,6 +140,7 @@ export default function LoginPage() {
 	const [adminFullName, setAdminFullName] = useState("");
 	const [adminError, setAdminError] = useState("");
 	const [adminNotice, setAdminNotice] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const isAdminPanel = panel === "admin";
 	const resolvedMode: AuthMode = isAdminPanel ? adminMode : mode;
@@ -143,84 +149,209 @@ export default function LoginPage() {
 	const normalizedAdminName = normalizeName(adminFullName);
 
 	useEffect(() => {
-		const session = getActiveSession();
-		if (session) {
-			router.replace(getPostLoginHref(session));
-		}
+		let cancelled = false;
+		void refreshSessionSnapshot().then((session) => {
+			if (!cancelled && session) {
+				router.replace(getPostLoginHref(session));
+			}
+		});
+		return () => {
+			cancelled = true;
+		};
 	}, [router]);
 
-	const handleUserSubmit = () => {
-		if (mode === "sign-up") {
-			if (!normalizedUserName || normalizedUserName.split(" ").length < 2) {
-				setUserError("Enter first and last name.");
+	const handleUserSubmit = async () => {
+		try {
+			const supabase = getSupabaseBrowserClient();
+
+			if (mode === "sign-up") {
+				if (!normalizedUserName || normalizedUserName.split(" ").length < 2) {
+					setUserNotice("");
+					setUserError("Enter first and last name.");
+					return;
+				}
+				if (!normalize(email) || !password.trim()) {
+					setUserNotice("");
+					setUserError("Enter your email and password.");
+					return;
+				}
+
+				setIsSubmitting(true);
+				setUserError("");
+				setUserNotice("");
+				const { data, error } = await supabase.auth.signUp({
+					email: normalize(email),
+					password,
+					options: {
+						data: {
+							full_name: normalizedUserName,
+							role: "user",
+						},
+					},
+				});
+				if (error) {
+					setUserNotice("");
+					setUserError(error.message);
+					return;
+				}
+
+				if (!data.session) {
+					setUserError("");
+					setUserNotice("Account created. Check your email to confirm, then sign in.");
+					setMode("sign-in");
+					return;
+				}
+
+				const session = await refreshSessionSnapshot();
+				router.push(session ? getPostLoginHref(session) : "/dashboard");
 				return;
 			}
+
 			if (!normalize(email) || !password.trim()) {
+				setUserNotice("");
 				setUserError("Enter your email and password.");
 				return;
 			}
+
+			setIsSubmitting(true);
 			setUserError("");
-			setActiveSession("user", email, normalizedUserName);
-			router.push("/dashboard");
-			return;
-		}
+			setUserNotice("");
+			const { data, error } = await supabase.auth.signInWithPassword({
+				email: normalize(email),
+				password,
+			});
+			if (error) {
+				setUserNotice("");
+				setUserError(error.message);
+				return;
+			}
 
-		if (normalize(email) !== USER_EMAIL || password !== DEMO_PASSWORD) {
-			setUserError("Use user@impactful.org with password 'password' for user login.");
-			return;
-		}
+			if (!data.session) {
+				setUserNotice("");
+				setUserError("Sign in succeeded but no active session was returned. Please try again.");
+				return;
+			}
 
-		setUserError("");
-		setActiveSession("user", email, normalizedUserName || "User Impactful");
-		router.push("/dashboard");
+			const session = await refreshSessionSnapshot();
+			router.push(session ? getPostLoginHref(session) : "/dashboard");
+		} catch (error) {
+			setUserNotice("");
+			setUserError(getErrorMessage(error, "We could not sign you in right now. Please try again."));
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
-	const handleAdminSubmit = () => {
-		if (adminMode === "sign-in") {
-			if (!authenticateAdmin(adminEmail, adminPassword)) {
+	const handleAdminSubmit = async () => {
+		try {
+			const supabase = getSupabaseBrowserClient();
+
+			if (adminMode === "sign-in") {
+				if (!normalize(adminEmail) || !adminPassword.trim()) {
+					setAdminNotice("");
+					setAdminError("Enter your email and password.");
+					return;
+				}
+
+				setIsSubmitting(true);
+				setAdminError("");
 				setAdminNotice("");
-				setAdminError("Invalid credentials. Use an invited admin account or create one with your invite code.");
+				const { data, error } = await supabase.auth.signInWithPassword({
+					email: normalize(adminEmail),
+					password: adminPassword,
+				});
+				if (error) {
+					setAdminNotice("");
+					setAdminError(error.message);
+					return;
+				}
+
+				if (!data.session) {
+					setAdminNotice("");
+					setAdminError("Sign in succeeded but no active session was returned. Please try again.");
+					return;
+				}
+
+				const session = await refreshSessionSnapshot();
+				if (session?.role !== "admin") {
+					await clearActiveSession();
+					setAdminNotice("");
+					setAdminError("This account is not an admin account.");
+					return;
+				}
+
+				setAdminError("");
+				setAdminNotice("");
+				router.push("/admin");
+				return;
+			}
+
+			if (!normalizedAdminName || normalizedAdminName.split(" ").length < 2) {
+				setAdminNotice("");
+				setAdminError("Enter first and last name.");
+				return;
+			}
+
+			if (adminPassword !== adminConfirmPassword) {
+				setAdminNotice("");
+				setAdminError("Passwords do not match.");
+				return;
+			}
+
+			if (!adminInviteCode.trim()) {
+				setAdminNotice("");
+				setAdminError("Invite code is required.");
+				return;
+			}
+
+			setIsSubmitting(true);
+			setAdminError("");
+			setAdminNotice("");
+			const { data, error } = await supabase.auth.signUp({
+				email: normalize(adminEmail),
+				password: adminPassword,
+				options: {
+					data: {
+						full_name: normalizedAdminName,
+						role: "admin",
+						invite_code: adminInviteCode.trim().toUpperCase(),
+					},
+				},
+			});
+			if (error) {
+				setAdminNotice("");
+				setAdminError(error.message);
+				return;
+			}
+
+			if (!data.session) {
+				setAdminError("");
+				setAdminNotice("Admin account created. Check your email to confirm, then sign in.");
+				setAdminInviteCode("");
+				setAdminConfirmPassword("");
+				setAdminMode("sign-in");
+				return;
+			}
+
+			const session = await refreshSessionSnapshot();
+			if (session?.role !== "admin") {
+				await clearActiveSession();
+				setAdminNotice("");
+				setAdminError("This account is not an admin account.");
 				return;
 			}
 
 			setAdminError("");
-			setAdminNotice("");
-			setActiveSession("admin", adminEmail, getAdminAccountName(adminEmail));
+			setAdminNotice("Admin account created.");
+			setAdminInviteCode("");
+			setAdminConfirmPassword("");
 			router.push("/admin");
-			return;
-		}
-
-		if (!normalizedAdminName || normalizedAdminName.split(" ").length < 2) {
+		} catch (error) {
 			setAdminNotice("");
-			setAdminError("Enter first and last name.");
-			return;
+			setAdminError(getErrorMessage(error, "We could not sign you in right now. Please try again."));
+		} finally {
+			setIsSubmitting(false);
 		}
-
-		if (adminPassword !== adminConfirmPassword) {
-			setAdminNotice("");
-			setAdminError("Passwords do not match.");
-			return;
-		}
-
-		const result = registerAdminFromInvite({
-			email: adminEmail,
-			code: adminInviteCode,
-			password: adminPassword,
-			fullName: normalizedAdminName,
-		});
-
-		if (!result.ok) {
-			setAdminNotice("");
-			setAdminError(result.message);
-			return;
-		}
-
-		setAdminError("");
-		setAdminNotice(result.message);
-		setAdminInviteCode("");
-		setAdminConfirmPassword("");
-		setActiveSession("admin", adminEmail, normalizedAdminName);
-		router.push("/admin");
 	};
 
 	const heading = isSignUp ? "Create account" : "Welcome back";
@@ -245,6 +376,7 @@ export default function LoginPage() {
 					onChange={(next) => {
 						setPanel(next);
 						setUserError("");
+						setUserNotice("");
 						setAdminError("");
 						setAdminNotice("");
 					}}
@@ -261,6 +393,7 @@ export default function LoginPage() {
 							} else {
 								setMode(next);
 								setUserError("");
+								setUserNotice("");
 							}
 						}}
 					/>
@@ -301,6 +434,7 @@ export default function LoginPage() {
 				) : (
 					<>
 						{userError ? <p className="pt-3 text-sm text-[#b42318]">{userError}</p> : null}
+						{userNotice ? <p className="pt-3 text-sm text-[#0f5047]">{userNotice}</p> : null}
 						{!isSignUp ? (
 							<div className="pt-2 text-right">
 								<a href="#forgot" className="font-sans text-[12px] text-[#99a1af] underline underline-offset-2">
@@ -314,7 +448,8 @@ export default function LoginPage() {
 				<button
 					type="button"
 					onClick={isAdminPanel ? handleAdminSubmit : handleUserSubmit}
-					className="mt-6 h-[56px] w-full rounded-[1000px] bg-[#ff8d00] font-sans text-[16px] font-bold text-white shadow-[0px_4px_0px_#b46300]"
+					disabled={isSubmitting}
+					className="mt-6 h-[56px] w-full rounded-[1000px] bg-[#ff8d00] font-sans text-[16px] font-bold text-white shadow-[0px_4px_0px_#b46300] disabled:cursor-not-allowed disabled:opacity-70"
 				>
 					{isAdminPanel
 						? isSignUp

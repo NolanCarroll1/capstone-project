@@ -671,8 +671,7 @@ function ChoiceCard({
 			</div>
 
 			<div>
-				<h2 className="font-sans text-[clamp(16px,4.8vw,17px)] font-bold leading-[1.35] text-[#121212]">{choice.title}</h2>
-				<p className="mt-1 font-sans text-[clamp(14px,4.3vw,16px)] leading-[1.4] text-[#08394d]">{choice.description}</p>
+				<p className="font-sans text-[clamp(14px,4.3vw,16px)] leading-[1.4] text-[#08394d]">{choice.description}</p>
 			</div>
 
 			<div
