@@ -20,6 +20,13 @@ function normalizeName(value: string) {
 	return value.trim().replace(/\s+/g, " ");
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+	if (error instanceof Error && error.message.trim()) {
+		return error.message;
+	}
+	return fallback;
+}
+
 function AuthTabs({ mode, onModeChange }: { mode: AuthMode; onModeChange: (mode: AuthMode) => void }) {
 	return (
 		<div className="grid h-[46px] grid-cols-2 border-b border-[#e5e7eb] text-center">
@@ -154,14 +161,52 @@ export default function LoginPage() {
 	}, [router]);
 
 	const handleUserSubmit = async () => {
-		const supabase = getSupabaseBrowserClient();
+		try {
+			const supabase = getSupabaseBrowserClient();
 
-		if (mode === "sign-up") {
-			if (!normalizedUserName || normalizedUserName.split(" ").length < 2) {
+			if (mode === "sign-up") {
+				if (!normalizedUserName || normalizedUserName.split(" ").length < 2) {
+					setUserNotice("");
+					setUserError("Enter first and last name.");
+					return;
+				}
+				if (!normalize(email) || !password.trim()) {
+					setUserNotice("");
+					setUserError("Enter your email and password.");
+					return;
+				}
+
+				setIsSubmitting(true);
+				setUserError("");
 				setUserNotice("");
-				setUserError("Enter first and last name.");
+				const { data, error } = await supabase.auth.signUp({
+					email: normalize(email),
+					password,
+					options: {
+						data: {
+							full_name: normalizedUserName,
+							role: "user",
+						},
+					},
+				});
+				if (error) {
+					setUserNotice("");
+					setUserError(error.message);
+					return;
+				}
+
+				if (!data.session) {
+					setUserError("");
+					setUserNotice("Account created. Check your email to confirm, then sign in.");
+					setMode("sign-in");
+					return;
+				}
+
+				const session = await refreshSessionSnapshot();
+				router.push(session ? getPostLoginHref(session) : "/dashboard");
 				return;
 			}
+
 			if (!normalize(email) || !password.trim()) {
 				setUserNotice("");
 				setUserError("Enter your email and password.");
@@ -171,17 +216,10 @@ export default function LoginPage() {
 			setIsSubmitting(true);
 			setUserError("");
 			setUserNotice("");
-			const { data, error } = await supabase.auth.signUp({
+			const { data, error } = await supabase.auth.signInWithPassword({
 				email: normalize(email),
 				password,
-				options: {
-					data: {
-						full_name: normalizedUserName,
-						role: "user",
-					},
-				},
 			});
-			setIsSubmitting(false);
 			if (error) {
 				setUserNotice("");
 				setUserError(error.message);
@@ -189,60 +227,109 @@ export default function LoginPage() {
 			}
 
 			if (!data.session) {
-				setUserError("");
-				setUserNotice("Account created. Check your email to confirm, then sign in.");
-				setMode("sign-in");
+				setUserNotice("");
+				setUserError("Sign in succeeded but no active session was returned. Please try again.");
 				return;
 			}
 
 			const session = await refreshSessionSnapshot();
-			router.push(getPostLoginHref(session));
-			return;
-		}
-
-		if (!normalize(email) || !password.trim()) {
+			router.push(session ? getPostLoginHref(session) : "/dashboard");
+		} catch (error) {
 			setUserNotice("");
-			setUserError("Enter your email and password.");
-			return;
+			setUserError(getErrorMessage(error, "We could not sign you in right now. Please try again."));
+		} finally {
+			setIsSubmitting(false);
 		}
-
-		setIsSubmitting(true);
-		setUserError("");
-		setUserNotice("");
-		const { error } = await supabase.auth.signInWithPassword({
-			email: normalize(email),
-			password,
-		});
-		setIsSubmitting(false);
-		if (error) {
-			setUserNotice("");
-			setUserError(error.message);
-			return;
-		}
-
-		const session = await refreshSessionSnapshot();
-		router.push(getPostLoginHref(session));
 	};
 
 	const handleAdminSubmit = async () => {
-		const supabase = getSupabaseBrowserClient();
+		try {
+			const supabase = getSupabaseBrowserClient();
 
-		if (adminMode === "sign-in") {
-			if (!normalize(adminEmail) || !adminPassword.trim()) {
+			if (adminMode === "sign-in") {
+				if (!normalize(adminEmail) || !adminPassword.trim()) {
+					setAdminNotice("");
+					setAdminError("Enter your email and password.");
+					return;
+				}
+
+				setIsSubmitting(true);
+				setAdminError("");
 				setAdminNotice("");
-				setAdminError("Enter your email and password.");
+				const { data, error } = await supabase.auth.signInWithPassword({
+					email: normalize(adminEmail),
+					password: adminPassword,
+				});
+				if (error) {
+					setAdminNotice("");
+					setAdminError(error.message);
+					return;
+				}
+
+				if (!data.session) {
+					setAdminNotice("");
+					setAdminError("Sign in succeeded but no active session was returned. Please try again.");
+					return;
+				}
+
+				const session = await refreshSessionSnapshot();
+				if (session?.role !== "admin") {
+					await clearActiveSession();
+					setAdminNotice("");
+					setAdminError("This account is not an admin account.");
+					return;
+				}
+
+				setAdminError("");
+				setAdminNotice("");
+				router.push("/admin");
+				return;
+			}
+
+			if (!normalizedAdminName || normalizedAdminName.split(" ").length < 2) {
+				setAdminNotice("");
+				setAdminError("Enter first and last name.");
+				return;
+			}
+
+			if (adminPassword !== adminConfirmPassword) {
+				setAdminNotice("");
+				setAdminError("Passwords do not match.");
+				return;
+			}
+
+			if (!adminInviteCode.trim()) {
+				setAdminNotice("");
+				setAdminError("Invite code is required.");
 				return;
 			}
 
 			setIsSubmitting(true);
-			const { error } = await supabase.auth.signInWithPassword({
+			setAdminError("");
+			setAdminNotice("");
+			const { data, error } = await supabase.auth.signUp({
 				email: normalize(adminEmail),
 				password: adminPassword,
+				options: {
+					data: {
+						full_name: normalizedAdminName,
+						role: "admin",
+						invite_code: adminInviteCode.trim().toUpperCase(),
+					},
+				},
 			});
-			setIsSubmitting(false);
 			if (error) {
 				setAdminNotice("");
 				setAdminError(error.message);
+				return;
+			}
+
+			if (!data.session) {
+				setAdminError("");
+				setAdminNotice("Admin account created. Check your email to confirm, then sign in.");
+				setAdminInviteCode("");
+				setAdminConfirmPassword("");
+				setAdminMode("sign-in");
 				return;
 			}
 
@@ -255,70 +342,16 @@ export default function LoginPage() {
 			}
 
 			setAdminError("");
-			setAdminNotice("");
-			router.push("/admin");
-			return;
-		}
-
-		if (!normalizedAdminName || normalizedAdminName.split(" ").length < 2) {
-			setAdminNotice("");
-			setAdminError("Enter first and last name.");
-			return;
-		}
-
-		if (adminPassword !== adminConfirmPassword) {
-			setAdminNotice("");
-			setAdminError("Passwords do not match.");
-			return;
-		}
-
-		if (!adminInviteCode.trim()) {
-			setAdminNotice("");
-			setAdminError("Invite code is required.");
-			return;
-		}
-
-		setIsSubmitting(true);
-		const { data, error } = await supabase.auth.signUp({
-			email: normalize(adminEmail),
-			password: adminPassword,
-			options: {
-				data: {
-					full_name: normalizedAdminName,
-					role: "admin",
-					invite_code: adminInviteCode.trim().toUpperCase(),
-				},
-			},
-		});
-		setIsSubmitting(false);
-		if (error) {
-			setAdminNotice("");
-			setAdminError(error.message);
-			return;
-		}
-
-		if (!data.session) {
-			setAdminError("");
-			setAdminNotice("Admin account created. Check your email to confirm, then sign in.");
+			setAdminNotice("Admin account created.");
 			setAdminInviteCode("");
 			setAdminConfirmPassword("");
-			setAdminMode("sign-in");
-			return;
-		}
-
-		const session = await refreshSessionSnapshot();
-		if (session?.role !== "admin") {
-			await clearActiveSession();
+			router.push("/admin");
+		} catch (error) {
 			setAdminNotice("");
-			setAdminError("This account is not an admin account.");
-			return;
+			setAdminError(getErrorMessage(error, "We could not sign you in right now. Please try again."));
+		} finally {
+			setIsSubmitting(false);
 		}
-
-		setAdminError("");
-		setAdminNotice("Admin account created.");
-		setAdminInviteCode("");
-		setAdminConfirmPassword("");
-		router.push("/admin");
 	};
 
 	const heading = isSignUp ? "Create account" : "Welcome back";
