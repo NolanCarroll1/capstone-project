@@ -25,8 +25,8 @@ export function LogoutButton({
 		<Button
 			type="button"
 			variant={variant}
-			onClick={() => {
-				clearActiveSession();
+			onClick={async () => {
+				await clearActiveSession();
 				onLoggedOut?.();
 				router.replace(redirectTo);
 			}}
